@@ -16,6 +16,11 @@ export const uploadRecord = async (req, res) => {
 
     const { encryptedData, iv } = encryptText(description || 'Clinical evaluation record');
 
+    let validRecordType = recordType || 'Clinical Note';
+    if (!['Prescription', 'Lab Result', 'Clinical Note', 'Clinical Evaluation', 'Prescription & Clinical Note', 'Vitals Chart', 'General'].includes(validRecordType)) {
+      validRecordType = 'Clinical Note';
+    }
+
     const record = await MedicalRecord.create({
       patient,
       doctor,
@@ -25,7 +30,7 @@ export const uploadRecord = async (req, res) => {
       iv: iv,
       isEncrypted: true,
       fileUrl: fileUrl || '#',
-      recordType: recordType || 'Clinical Note',
+      recordType: validRecordType,
       vitals: vitals || {}
     });
 

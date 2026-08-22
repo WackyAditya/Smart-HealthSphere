@@ -9,13 +9,12 @@ const medicalRecordSchema = new mongoose.Schema({
   iv: { type: String },
   isEncrypted: { type: Boolean, default: true },
   fileUrl: { type: String },
-  recordType: { type: String, enum: ['Prescription', 'Lab Result', 'Clinical Note', 'Vitals Chart', 'General'], default: 'Clinical Note' },
-  vitals: {
-    bloodPressure: { type: String },
-    heartRate: { type: String },
-    temperature: { type: String },
-    spo2: { type: String }
-  }
+  recordType: { 
+    type: String, 
+    enum: ['Prescription', 'Lab Result', 'Clinical Note', 'Clinical Evaluation', 'Prescription & Clinical Note', 'Vitals Chart', 'General'], 
+    default: 'Clinical Note' 
+  },
+  vitals: { type: mongoose.Schema.Types.Mixed, default: {} }
 }, { timestamps: true });
 
 const MedicalRecord = mongoose.model('MedicalRecord', medicalRecordSchema);
