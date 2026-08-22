@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { User, Star, X, Calendar, Clock, HeartPulse, ShieldCheck, MapPin, Search, Filter, Sparkles } from 'lucide-react';
+import { User, Star, X, Calendar, Clock, HeartPulse, ShieldCheck, MapPin, Search, Filter, Sparkles, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const SPECIALTY_CHIPS = [
@@ -129,16 +129,28 @@ const DoctorsList = () => {
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20">
       {/* Hero Section - Seamless full bleed top */}
-      <div className="bg-gradient-to-b from-indigo-700 via-primary-600 to-primary-700 pt-28 pb-32 md:pt-36 md:pb-40 px-4 text-center text-white relative overflow-hidden">
+      <div className="bg-gradient-to-b from-indigo-700 via-primary-600 to-primary-700 pt-28 pb-32 md:pt-32 md:pb-36 px-4 text-center text-white relative overflow-hidden">
          <div className="absolute top-0 left-0 w-full h-full opacity-15 pointer-events-none">
             <div className="absolute top-10 left-10 w-80 h-80 bg-white rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300 rounded-full blur-3xl animate-pulse"></div>
          </div>
          
-         <div className="relative z-10 max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold text-xs mb-6">
-              <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
-              <span>Certified Healthcare Specialists Directory</span>
+         <div className="relative z-10 max-w-5xl mx-auto">
+            {/* Top Navigation Row */}
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <Link 
+                to="/"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-md border border-white/20 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <Home className="w-3.5 h-3.5" />
+                <span>Return to Home</span>
+              </Link>
+
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold text-xs">
+                <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+                <span>Certified Healthcare Specialists Directory</span>
+              </div>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight text-white drop-shadow-sm">
