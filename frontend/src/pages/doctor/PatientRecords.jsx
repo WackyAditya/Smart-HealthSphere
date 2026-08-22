@@ -10,7 +10,8 @@ import {
   User, 
   X,
   Check,
-  Calendar
+  Calendar,
+  RefreshCw
 } from 'lucide-react';
 import api from '../../api/axios';
 import { useSearch } from '../../context/SearchContext';
@@ -20,6 +21,7 @@ const PatientRecords = () => {
   const [records, setRecords] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingPatients, setLoadingPatients] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -33,28 +35,53 @@ const PatientRecords = () => {
     vitals: { bp: '120/80', pulse: '72', temp: '98.6°F' }
   });
 
+  const loadPatients = async () => {
+    try {
+      setLoadingPatients(true);
+      const res = await api.get('/doctors/patients/all');
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setPatients(res.data);
+        if (!newRecord.patientId && res.data.length > 0) {
+          setNewRecord(prev => ({ ...prev, patientId: res.data[0]._id }));
+        }
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not fetch from /doctors/patients/all, attempting fallback:', err);
+    }
+    
+    // Fallback: extract unique patients from doctor appointments
+    try {
+      const aptRes = await api.get('/appointments/me');
+      const patientMap = {};
+      (aptRes.data || []).forEach(a => {
+        if (a.patient && a.patient._id) {
+          patientMap[a.patient._id] = {
+            _id: a.patient._id,
+            name: a.patient.name,
+            email: a.patient.email,
+            hasAppointment: true
+          };
+        }
+      });
+      const list = Object.values(patientMap);
+      setPatients(list);
+      if (!newRecord.patientId && list.length > 0) {
+        setNewRecord(prev => ({ ...prev, patientId: list[0]._id }));
+      }
+    } catch (e) {
+      console.error('Fallback patient error:', e);
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [recRes, patRes] = await Promise.all([
-        api.get('/medical-records'),
-        api.get('/doctors/patients/all').catch(() => ({ data: [] }))
-      ]);
-      setRecords(recRes.data);
-      
-      if (patRes.data && patRes.data.length > 0) {
-        setPatients(patRes.data);
-      } else {
-        // Fallback: extract from appointments
-        const aptRes = await api.get('/appointments/me');
-        const patientMap = {};
-        aptRes.data.forEach(a => {
-          if (a.patient && a.patient._id) {
-            patientMap[a.patient._id] = a.patient;
-          }
-        });
-        setPatients(Object.values(patientMap));
-      }
+      const recRes = await api.get('/medical-records');
+      setRecords(recRes.data || []);
+      await loadPatients();
     } catch (error) {
       console.error('Error fetching records:', error);
     } finally {
@@ -65,6 +92,12 @@ const PatientRecords = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (showAddModal) {
+      loadPatients();
+    }
+  }, [showAddModal]);
 
   const handleCreateRecord = async (e) => {
     e.preventDefault();
@@ -94,7 +127,7 @@ const PatientRecords = () => {
   };
 
   const filteredRecords = records.filter(rec => {
-    if (!searchTerm.trim()) return true;
+    if (!searchTerm?.trim()) return true;
     const term = searchTerm.toLowerCase();
     return (
       rec.title?.toLowerCase().includes(term) ||
@@ -131,7 +164,10 @@ const PatientRecords = () => {
           <p className="text-gray-500 mt-1">Review diagnostic histories, vitals, and write encrypted clinical notes.</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            loadPatients();
+            setShowAddModal(true);
+          }}
           className="bg-primary-600 hover:bg-primary-700 active:scale-95 text-white px-8 py-4 rounded-2xl font-bold flex items-center space-x-2 transition-all shadow-xl shadow-indigo-100 cursor-pointer"
         >
           <PlusCircle className="h-5 w-5" />
@@ -287,18 +323,29 @@ const PatientRecords = () => {
             </div>
 
             <form onSubmit={handleCreateRecord} className="p-8 space-y-5">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Patient *</label>
-                  <span className="text-[10px] font-bold text-primary-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                    {patients.length} {patients.length === 1 ? 'patient' : 'patients'} available
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-primary-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                      {loadingPatients ? 'Loading patients...' : `${patients.length} available`}
+                    </span>
+                    <button 
+                      type="button" 
+                      onClick={loadPatients}
+                      title="Refresh patients list"
+                      className="text-gray-400 hover:text-primary-600 p-1 rounded-full hover:bg-gray-100 transition"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${loadingPatients ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
                 </div>
+
                 <select 
                   required
                   value={newRecord.patientId}
                   onChange={(e) => setNewRecord({...newRecord, patientId: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary-500 outline-none text-sm font-bold text-gray-800"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary-500 outline-none text-sm font-bold text-gray-800 cursor-pointer"
                 >
                   <option value="">-- Choose Patient --</option>
                   {patients.map(p => (
@@ -307,7 +354,26 @@ const PatientRecords = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-gray-400 mt-1">Select any registered patient to record their encrypted medical notes.</p>
+
+                {/* Quick select patient chips */}
+                {patients.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {patients.map(p => (
+                      <button
+                        type="button"
+                        key={p._id}
+                        onClick={() => setNewRecord({...newRecord, patientId: p._id})}
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          newRecord.patientId === p._id
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-primary-600'
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">

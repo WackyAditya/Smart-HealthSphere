@@ -11,8 +11,9 @@ import { protect, authorize } from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 router.get('/', listDoctors);
-router.get('/dashboard/me', protect, authorize('doctor'), getDoctorDashboard);
-router.get('/patients/all', protect, authorize('doctor'), listPatientsForDoctor);
+router.get('/dashboard/me', protect, authorize('doctor', 'admin'), getDoctorDashboard);
+router.get('/patients/all', protect, authorize('doctor', 'admin'), listPatientsForDoctor);
+router.get('/patients', protect, authorize('doctor', 'admin'), listPatientsForDoctor);
 router.patch('/availability/me', protect, authorize('doctor'), updateAvailability);
 router.get('/:id', getDoctorProfile);
 
