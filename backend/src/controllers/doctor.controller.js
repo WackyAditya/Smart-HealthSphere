@@ -63,3 +63,28 @@ export const updateAvailability = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const listPatientsForDoctor = async (req, res) => {
+  try {
+    // Find all patients in the system
+    const patients = await User.find({ role: 'patient' })
+      .select('name email _id phone createdAt')
+      .sort({ name: 1 });
+
+    // Also get appointments to see which patients have consultations with this doctor
+    const doctorAppointments = await Appointment.find({ doctor: req.user._id }).select('patient');
+    const consultedPatientIds = new Set(doctorAppointments.map(a => a.patient.toString()));
+
+    const formatted = patients.map(p => ({
+      _id: p._id,
+      name: p.name,
+      email: p.email,
+      hasAppointment: consultedPatientIds.has(p._id.toString())
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

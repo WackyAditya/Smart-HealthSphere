@@ -36,20 +36,25 @@ const PatientRecords = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [recRes, aptRes] = await Promise.all([
+      const [recRes, patRes] = await Promise.all([
         api.get('/medical-records'),
-        api.get('/appointments/my-appointments')
+        api.get('/doctors/patients/all').catch(() => ({ data: [] }))
       ]);
       setRecords(recRes.data);
       
-      // Extract unique patients from doctor appointments
-      const patientMap = {};
-      aptRes.data.forEach(a => {
-        if (a.patient && a.patient._id) {
-          patientMap[a.patient._id] = a.patient;
-        }
-      });
-      setPatients(Object.values(patientMap));
+      if (patRes.data && patRes.data.length > 0) {
+        setPatients(patRes.data);
+      } else {
+        // Fallback: extract from appointments
+        const aptRes = await api.get('/appointments/me');
+        const patientMap = {};
+        aptRes.data.forEach(a => {
+          if (a.patient && a.patient._id) {
+            patientMap[a.patient._id] = a.patient;
+          }
+        });
+        setPatients(Object.values(patientMap));
+      }
     } catch (error) {
       console.error('Error fetching records:', error);
     } finally {
@@ -282,22 +287,27 @@ const PatientRecords = () => {
             </div>
 
             <form onSubmit={handleCreateRecord} className="p-8 space-y-5">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Patient *</label>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Patient *</label>
+                  <span className="text-[10px] font-bold text-primary-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                    {patients.length} {patients.length === 1 ? 'patient' : 'patients'} available
+                  </span>
+                </div>
                 <select 
                   required
                   value={newRecord.patientId}
                   onChange={(e) => setNewRecord({...newRecord, patientId: e.target.value})}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary-500 outline-none text-sm font-semibold"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary-500 outline-none text-sm font-bold text-gray-800"
                 >
                   <option value="">-- Choose Patient --</option>
                   {patients.map(p => (
-                    <option key={p._id} value={p._id}>{p.name} ({p.email})</option>
+                    <option key={p._id} value={p._id}>
+                      {p.name} ({p.email}) {p.hasAppointment ? '• Recent Appointment' : ''}
+                    </option>
                   ))}
                 </select>
-                {patients.length === 0 && (
-                  <p className="text-xs text-amber-600 mt-1">Note: You need at least one patient who booked an appointment with you.</p>
-                )}
+                <p className="text-[11px] text-gray-400 mt-1">Select any registered patient to record their encrypted medical notes.</p>
               </div>
 
               <div className="space-y-1">
