@@ -4,8 +4,9 @@ import { protect, authorize } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-router.post('/', protect, authorize('patient', 'doctor'), uploadRecord);
-router.get('/me', protect, authorize('patient', 'doctor'), viewRecords);
-router.delete('/:id', protect, authorize('patient', 'admin'), deleteRecord);
+router.post('/', protect, authorize('patient', 'doctor', 'admin'), uploadRecord);
+router.get('/', protect, authorize('patient', 'doctor', 'admin'), viewRecords);
+router.get('/me', protect, authorize('patient', 'doctor', 'admin'), viewRecords);
+router.delete('/:id', protect, authorize('patient', 'doctor', 'admin'), deleteRecord);
 
 export default router;

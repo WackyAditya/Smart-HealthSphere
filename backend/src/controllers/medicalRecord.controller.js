@@ -42,13 +42,18 @@ export const uploadRecord = async (req, res) => {
 
 export const viewRecords = async (req, res) => {
   try {
-    const query = req.user.role === 'patient' 
-      ? { patient: req.user._id } 
-      : { doctor: req.user._id };
+    let query = {};
+    if (req.user.role === 'patient') {
+      query = { patient: req.user._id };
+    } else if (req.user.role === 'doctor') {
+      query = { doctor: req.user._id };
+    }
+    // Admin sees all records
 
     const rawRecords = await MedicalRecord.find(query)
       .populate('patient', 'name email')
-      .populate('doctor', 'name specialization');
+      .populate('doctor', 'name specialization')
+      .sort({ createdAt: -1 });
     
     const records = rawRecords.map(rec => {
       const doc = rec.toObject();
