@@ -28,6 +28,8 @@ import DoctorAppointments from '../pages/doctor/DoctorAppointments';
 import PatientRecords from '../pages/doctor/PatientRecords';
 import Availability from '../pages/doctor/Availability';
 
+import HealthConciergeBot from '../components/chat/HealthConciergeBot';
+
 // A layout for public pages (with Navbar)
 const PublicLayout = () => (
   <div className="flex flex-col min-h-screen">
@@ -75,6 +77,9 @@ const AppRoutes = () => {
           <Route path="/admin/*" element={<div className="p-4">Under Construction</div>} />
         </Route>
       </Routes>
+
+      {/* Floating 24/7 AI Health Concierge Bot */}
+      <HealthConciergeBot />
     </Router>
   );
 };
