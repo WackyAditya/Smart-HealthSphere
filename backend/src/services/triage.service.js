@@ -11,14 +11,14 @@ const SYMPTOM_SPECIALTY_MAP = [
     emergencyKeywords: ['severe chest pain', 'crushing chest pain', 'arm pain', 'fainting', 'loss of consciousness']
   },
   {
-    keywords: ['headache', 'migraine', 'dizziness', 'seizure', 'numbness', 'paralysis', 'memory loss', 'brain', 'tremor'],
+    keywords: ['headache', 'migraine', 'dizziness', 'seizure', 'numbness', 'paralysis', 'memory loss', 'brain', 'tremor','tumor'],
     specialty: 'Neurology',
     baseSeverity: 75,
     triageLevel: 'High Risk',
     emergencyKeywords: ['sudden numbness', 'slurred speech', 'facial drooping', 'unresponsive']
   },
   {
-    keywords: ['rash', 'skin', 'itching', 'eczema', 'acne', 'lesion', 'mole', 'psoriasis', 'hives', 'dermatitis'],
+    keywords: ['rash','rashes', 'skin', 'itching', 'eczema', 'acne', 'lesion', 'mole', 'psoriasis', 'hives', 'dermatitis'],
     specialty: 'Dermatology',
     baseSeverity: 35,
     triageLevel: 'Low Risk',
