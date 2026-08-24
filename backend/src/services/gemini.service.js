@@ -76,15 +76,31 @@ ${doctorsContext}
       parts: [{ text: message }]
     });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.7,
-        maxOutputTokens: 800,
-      },
-      contents: contents,
-    });
+    // Use latest high-speed Gemini 3.6 Flash
+    const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    let response = null;
+    let lastErr = null;
+
+    for (const mod of candidateModels) {
+      try {
+        response = await ai.models.generateContent({
+          model: mod,
+          config: {
+            systemInstruction: systemInstruction,
+            temperature: 0.7,
+            maxOutputTokens: 800,
+          },
+          contents: contents,
+        });
+        if (response && response.text) break;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+
+    if (!response || !response.text) {
+      throw lastErr || new Error('No response from Gemini models');
+    }
 
     const replyText = response.text || "I am here to help you navigate Smart HealthSphere. How can I assist your health journey today?";
     return {
