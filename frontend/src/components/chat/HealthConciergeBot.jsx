@@ -29,7 +29,7 @@ const HealthConciergeBot = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      text: "👋 Hi there! I'm your **24/7 Health Concierge powered by Gemini AI**.\n\nAsk me anything about finding specialists, booking telemedicine calls, or understanding health records!",
+      text: "👋 Hi there! I'm your **24/7 Health Concierge**.\n\nAsk me anything about finding specialists, booking telemedicine calls, or understanding health records!",
       timestamp: new Date()
     }
   ]);
@@ -114,13 +114,12 @@ const HealthConciergeBot = () => {
   // Helper to render formatted text with bold and linebreaks
   const renderFormattedText = (text) => {
     return text.split('\n').map((line, idx) => {
-      // Parse bold **text**
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
         <p key={idx} className={line.startsWith('•') || line.startsWith('-') ? 'pl-2 my-0.5' : 'my-1'}>
           {parts.map((part, pIdx) => {
             if (part.startsWith('**') && part.endsWith('**')) {
-              return <strong key={pIdx} className="font-bold text-gray-900 dark:text-white">{part.slice(2, -2)}</strong>;
+              return <strong key={pIdx} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>;
             }
             return part;
           })}
@@ -144,14 +143,14 @@ const HealthConciergeBot = () => {
           </div>
           <div className="text-left hidden sm:block">
             <p className="text-xs font-black tracking-wide leading-tight">AI Health Concierge</p>
-            <p className="text-[10px] text-indigo-200 font-medium">24/7 Gemini Assistant</p>
+            <p className="text-[10px] text-indigo-200 font-medium">24/7 Intelligent Assistant</p>
           </div>
         </button>
       )}
 
       {/* Expanded Chat Box */}
       {isOpen && (
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl shadow-indigo-950/20 border border-indigo-100 dark:border-slate-800 w-[92vw] sm:w-[410px] h-[580px] max-h-[85vh] flex flex-col overflow-hidden animate-scale-up">
+        <div className="bg-white rounded-[2rem] shadow-2xl shadow-indigo-950/25 border border-indigo-100 w-[92vw] sm:w-[410px] h-[580px] max-h-[85vh] flex flex-col overflow-hidden animate-scale-up">
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 p-4 px-5 text-white flex items-center justify-between relative shadow-md">
             <div className="flex items-center gap-3">
@@ -159,13 +158,8 @@ const HealthConciergeBot = () => {
                 <Sparkles className="w-5 h-5 text-yellow-300" />
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-black text-sm tracking-tight">HealthSphere Concierge</h3>
-                  <span className="px-1.5 py-0.5 bg-emerald-400/20 border border-emerald-300/30 text-[9px] font-black rounded uppercase text-emerald-200">
-                    Gemini 1.5
-                  </span>
-                </div>
-                <p className="text-[11px] text-indigo-100/90 font-medium">24/7 AI Medical Assistant</p>
+                <h3 className="font-black text-sm tracking-tight text-white">HealthSphere Concierge</h3>
+                <p className="text-[11px] text-indigo-100 font-medium">24/7 AI Medical Assistant</p>
               </div>
             </div>
 
@@ -188,15 +182,15 @@ const HealthConciergeBot = () => {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-50/50 dark:bg-slate-900/50 text-xs">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-slate-50/70 text-xs">
             {messages.map((m) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {m.role === 'assistant' && (
-                  <div className="w-7 h-7 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-indigo-200 dark:border-indigo-800">
-                    <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <div className="w-7 h-7 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-indigo-200">
+                    <Bot className="w-4 h-4 text-indigo-600" />
                   </div>
                 )}
 
@@ -204,11 +198,11 @@ const HealthConciergeBot = () => {
                   className={`max-w-[82%] p-3.5 rounded-2xl leading-relaxed shadow-sm ${
                     m.role === 'user'
                       ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-sm font-medium'
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700 rounded-tl-sm'
+                      : 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-sm font-normal'
                   }`}
                 >
                   {renderFormattedText(m.text)}
-                  <span className={`block text-[9px] mt-1.5 text-right ${m.role === 'user' ? 'text-indigo-200' : 'text-slate-400'}`}>
+                  <span className={`block text-[9px] mt-1.5 text-right ${m.role === 'user' ? 'text-indigo-200' : 'text-slate-400 font-medium'}`}>
                     {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
@@ -226,7 +220,7 @@ const HealthConciergeBot = () => {
                 <div className="w-7 h-7 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center flex-shrink-0 border border-indigo-200">
                   <Bot className="w-4 h-4 text-indigo-600" />
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-sm border border-slate-200/60 dark:border-slate-700 shadow-sm flex items-center gap-1.5">
+                <div className="bg-white p-3 rounded-2xl rounded-tl-sm border border-slate-200/80 shadow-sm flex items-center gap-1.5">
                   <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
                   <div className="w-2 h-2 bg-pink-600 rounded-full animate-bounce [animation-delay:0.4s]"></div>
@@ -238,14 +232,14 @@ const HealthConciergeBot = () => {
 
           {/* Quick Action Suggestion Chips */}
           {messages.length <= 2 && (
-            <div className="px-4 py-2 bg-white dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800">
+            <div className="px-4 py-2 bg-white border-t border-slate-100">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Quick Suggestions</p>
               <div className="flex flex-wrap gap-1.5">
                 {QUICK_PROMPTS.map((prompt, i) => (
                   <button
                     key={i}
                     onClick={() => handleSendMessage(prompt)}
-                    className="text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-200/60 transition active:scale-95 cursor-pointer text-left"
+                    className="text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-lg border border-indigo-200/60 transition active:scale-95 cursor-pointer text-left"
                   >
                     {prompt}
                   </button>
@@ -254,25 +248,25 @@ const HealthConciergeBot = () => {
             </div>
           )}
 
-          {/* Input Bar */}
+          {/* Input Bar with High-Contrast Dark Text */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2"
+            className="p-3 bg-white border-t border-slate-200 flex items-center gap-2"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask HealthSphere Concierge..."
-              className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-medium text-slate-800 dark:text-slate-100 transition-all"
+              placeholder="Ask anything about doctors, booking, symptoms..."
+              className="flex-1 px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal shadow-inner transition-all"
             />
             <button
               type="submit"
               disabled={!inputText.trim() || loading}
-              className="p-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
+              className="p-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-40 cursor-pointer flex-shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>
