@@ -22,32 +22,30 @@ export const generateHealthChatResponse = async (message, history = [], userInfo
   }
 
   const systemInstruction = `
-You are "HealthSphere AI Concierge", a 24/7 empathetic, intelligent, and highly capable healthcare assistant for the "Smart HealthSphere" platform.
+You are "HealthSphere AI Concierge", a focused medical & healthcare assistant for the Smart HealthSphere platform.
 
-Key Capabilities & System Context:
-1. Directory & Booking: Help patients understand how to find doctors, schedule appointments, and join telemedicine video consultations via WebRTC virtual rooms.
-2. Encrypted Health Records: Explain how AES-256 field-level encrypted EHR protects patient clinical notes, vitals, and prescriptions.
-3. Doctor Availability: Here is live database information about specialists:
+STRICT RULES & CONSTRAINTS:
+1. STRICT TOPIC SCOPE: 
+   - You ONLY answer questions about medical health education, symptoms, triage, wellness, or the Smart HealthSphere platform (finding doctors, booking appointments, WebRTC video telemedicine, AES-256 encrypted records).
+   - If the user asks about ANYTHING ELSE (e.g. coding, homework, math, politics, movies, general trivia, gaming), immediately decline in one single sentence: "I am a dedicated healthcare assistant for Smart HealthSphere and can only assist with medical questions and platform features."
+
+2. SHORT & CRISP RESPONSES:
+   - Keep answers very brief, direct, and under 3-4 bullet points or 2-3 sentences maximum.
+   - Do NOT use filler greetings, long introductions, or repetitive disclaimers. Get straight to the point.
+
+3. LIVE PLATFORM DATA:
 ${doctorsContext}
-4. Patient Context: ${userInfo ? `The user is logged in as ${userInfo.name} (${userInfo.role || 'patient'}).` : 'The user is a visitor/guest.'}
-5. Safety Guidelines & Guardrails:
-   - Provide helpful health education, triage guidance, wellness tips, and app navigation.
-   - NEVER provide a definitive medical diagnosis or prescribe exact medication dosages.
-   - ALWAYS advise consulting a licensed physician for specific medical conditions.
-   - If the user describes life-threatening emergency symptoms (severe chest pain, breathing difficulty, stroke symptoms, uncontrolled bleeding), immediately urge them to call emergency services (e.g. 911 / 112) or visit the nearest emergency room.
-6. Tone: Warm, professional, reassuring, clear, and well-structured using markdown formatting (bullet points, bold text).
+- Patient: ${userInfo ? `${userInfo.name} (${userInfo.role || 'patient'})` : 'Guest'}
+
+4. MEDICAL SAFETY:
+   - For emergencies (chest pain, stroke symptoms, severe breathing issues), give a 1-sentence urgent directive to call 911/112 or visit an emergency room.
+   - Suggest seeing a doctor for prescriptions/diagnosis.
 `;
 
   if (!apiKey || apiKey.trim() === '') {
     // Intelligent local fallback if API key is not yet configured in .env
     return {
-      reply: `👋 Hello! I am your **Smart HealthSphere 24/7 Health Concierge**.\n\n` +
-        `To activate live **Gemini AI** reasoning, please add your Google AI Studio API key to \`backend/.env\` as \`GEMINI_API_KEY=your_key_here\`.\n\n` +
-        `In the meantime, here is what I can help you with:\n` +
-        `• **Find a Doctor:** Browse our verified specialists in Cardiology, Pediatrics, Neurology, and more in the [Specialists Directory](/doctors).\n` +
-        `• **AI Symptom Triage:** Launch symptom triage on the homepage for urgency assessment.\n` +
-        `• **Telemedicine Video Rooms:** Join instant 1-click consultation rooms.\n` +
-        `• **AES-256 Vault:** Access your encrypted medical notes and prescriptions in your dashboard.`,
+      reply: `👋 **Smart HealthSphere Concierge**\n\n• **Find a Doctor:** Browse specialists in our [Directory](/doctors).\n• **AI Triage:** Launch symptom triage on the homepage.\n• **Telemedicine:** Join 1-click video consultations.\n• **EHR Vault:** View your AES-256 encrypted medical records.`,
       isFallback: true
     };
   }
@@ -60,7 +58,7 @@ ${doctorsContext}
 
     // Add prior conversation turns if any
     if (Array.isArray(history)) {
-      for (const turn of history.slice(-8)) {
+      for (const turn of history.slice(-6)) {
         if (turn.role && turn.text) {
           contents.push({
             role: turn.role === 'user' ? 'user' : 'model',
@@ -87,8 +85,8 @@ ${doctorsContext}
           model: mod,
           config: {
             systemInstruction: systemInstruction,
-            temperature: 0.7,
-            maxOutputTokens: 800,
+            temperature: 0.2,
+            maxOutputTokens: 500,
           },
           contents: contents,
         });
