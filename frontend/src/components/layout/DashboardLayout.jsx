@@ -48,8 +48,8 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-indigo-50/50 flex">
       <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen p-6">
-        <div className="bg-white rounded-3xl shadow-sm border border-indigo-100 flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 ml-64 flex flex-col min-h-screen p-6 max-w-[calc(100vw-16rem)] overflow-x-hidden">
+        <div className="bg-white rounded-3xl shadow-sm border border-indigo-100 flex-1 flex flex-col overflow-hidden max-w-full">
           {/* Top Header */}
           <header className="h-20 bg-white flex items-center justify-between px-8 sticky top-0 z-30 border-b border-gray-50">
             <div className="relative flex items-center">
