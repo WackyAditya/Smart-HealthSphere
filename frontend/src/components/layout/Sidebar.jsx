@@ -6,14 +6,20 @@ import {
   FileText, 
   Settings, 
   LogOut,
+  LogIn,
   User,
   HeartPulse,
   Clock
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
-  const role = location.pathname.split('/')[1] || 'patient'; // patient, doctor, admin
+  const { user, logout } = useAuth();
+  
+  // Use logged in user role, or fallback to URL path, or default to patient
+  const pathRole = location.pathname.split('/')[1];
+  const role = user?.role || (pathRole === 'admin' ? 'admin' : pathRole === 'doctor' ? 'doctor' : 'patient');
 
   const patientLinks = [
     { name: 'Dashboard', path: '/patient/dashboard', icon: LayoutDashboard },
@@ -39,27 +45,31 @@ const Sidebar = () => {
   const links = role === 'admin' ? adminLinks : role === 'doctor' ? doctorLinks : patientLinks;
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+    if (logout) {
+      logout();
+    } else {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
   };
 
   return (
     <div className="w-64 bg-primary-600 h-screen fixed left-0 top-0 flex flex-col shadow-xl z-40 rounded-tr-3xl rounded-br-3xl">
       <div className="h-24 flex items-center justify-center px-6">
-        <Link to="/" className="text-2xl font-bold text-white flex items-center space-x-2">
+        <Link to="/" className="text-2xl font-bold text-white flex items-center space-x-2" title="Smart HealthSphere">
            <HeartPulse className="h-10 w-10 text-white" />
         </Link>
       </div>
       
       <div className="flex-1 py-8 flex flex-col space-y-4 px-4">
         {links.map((link) => {
-          const isActive = location.pathname.includes(link.path);
+          const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
           const Icon = link.icon;
           return (
             <Link
               key={link.name}
               to={link.path}
-              className={`flex items-center justify-center w-12 h-12 mx-auto rounded-xl transition-all ${
+              className={`flex items-center justify-center w-12 h-12 mx-auto rounded-xl transition-all cursor-pointer ${
                 isActive 
                   ? 'bg-white text-primary-600 shadow-lg' 
                   : 'text-indigo-200 hover:bg-primary-500 hover:text-white'
@@ -73,9 +83,15 @@ const Sidebar = () => {
       </div>
 
       <div className="p-6 flex justify-center border-t border-primary-500">
-        <button onClick={handleLogout} className="text-indigo-200 hover:text-white transition-colors">
-          <LogOut className="h-6 w-6" />
-        </button>
+        {user ? (
+          <button onClick={handleLogout} className="text-indigo-200 hover:text-white transition-colors cursor-pointer" title="Log out">
+            <LogOut className="h-6 w-6" />
+          </button>
+        ) : (
+          <Link to="/login" className="text-indigo-200 hover:text-white transition-colors" title="Log in">
+            <LogIn className="h-6 w-6" />
+          </Link>
+        )}
       </div>
     </div>
   );

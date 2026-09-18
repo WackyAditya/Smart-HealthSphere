@@ -47,15 +47,17 @@ const AppRoutes = () => {
         {/* Public Routes with Navbar */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/doctors" element={<DoctorsList />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
 
-        {/* Dashboard Routes with Sidebar */}
+        {/* Dashboard Routes with Sidebar (Matching Admin Overview layout) */}
         <Route element={<DashboardLayout />}>
+          <Route path="/doctors" element={<DoctorsList />} />
+          
           {/* Patient */}
           <Route path="/patient/dashboard" element={<PatientDashboard />} />
+          <Route path="/patient/doctors" element={<DoctorsList />} />
           <Route path="/patient/appointments" element={<MyAppointments />} />
           <Route path="/patient/records" element={<MedicalRecords />} />
           
