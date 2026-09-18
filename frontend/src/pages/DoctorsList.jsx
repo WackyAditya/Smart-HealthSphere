@@ -127,60 +127,58 @@ const DoctorsList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-20">
-      {/* Hero Section - Seamless full bleed top */}
-      <div className="bg-gradient-to-b from-indigo-700 via-primary-600 to-primary-700 pt-28 pb-32 md:pt-32 md:pb-36 px-4 text-center text-white relative overflow-hidden">
-         <div className="absolute top-0 left-0 w-full h-full opacity-15 pointer-events-none">
-            <div className="absolute top-10 left-10 w-80 h-80 bg-white rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300 rounded-full blur-3xl animate-pulse"></div>
-         </div>
-         
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans">
+      {/* Hero Section matching Home Page Theme */}
+      <div className="bg-gradient-to-b from-blue-50/80 via-indigo-50/40 to-slate-50 pt-28 pb-20 md:pt-32 md:pb-24 px-4 text-center relative overflow-hidden">
          <div className="relative z-10 max-w-5xl mx-auto">
             {/* Top Navigation Row */}
             <div className="flex items-center justify-between gap-4 mb-6">
               <Link 
                 to="/"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 backdrop-blur-md border border-white/20 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-700 font-bold text-xs shadow-xs transition-all cursor-pointer"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <Home className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-4 h-4 text-slate-400" />
+                <Home className="w-3.5 h-3.5 text-blue-600" />
                 <span>Return to Home</span>
               </Link>
 
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold text-xs">
-                <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-blue-200/80 text-blue-700 font-semibold text-xs shadow-xs">
+                <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
                 <span>Certified Healthcare Specialists Directory</span>
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight text-white drop-shadow-sm">
-              Find Your Specialist
+            <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight text-slate-900">
+              Find Your{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+                Specialist
+              </span>
             </h1>
-            <p className="text-indigo-100 text-base md:text-lg font-medium opacity-90 max-w-2xl mx-auto">
+            <p className="text-slate-600 text-base md:text-lg font-medium max-w-2xl mx-auto">
                Access world-class healthcare with top-rated medical experts. Book your consultation in just a few clicks.
             </p>
          </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 -mt-14 relative z-20">
-        {/* Search & Filters Box */}
-        <div className="bg-white p-4 md:p-6 rounded-[2.5rem] shadow-xl shadow-indigo-100/70 border border-indigo-50 space-y-4 mb-10">
+      <div className="max-w-7xl mx-auto px-4 -mt-10 relative z-20">
+        {/* Search & Filters Box - Clean White Admin Style */}
+        <div className="bg-white p-4 md:p-6 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-200/80 space-y-4 mb-10">
            <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 relative">
-                 <Search className="h-5 w-5 absolute left-4.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                 <Search className="h-5 w-5 absolute left-4.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                  <input 
                    id="input-specialist-search"
                    type="text" 
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
                    placeholder="Search by doctor name, specialization, or email..." 
-                   className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none font-medium text-gray-800 placeholder-gray-400 transition-all text-sm md:text-base" 
+                   className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none font-semibold text-slate-900 placeholder-slate-400 transition-all text-sm md:text-base" 
                  />
                  {searchTerm && (
                    <button 
                      onClick={() => setSearchTerm('')}
-                     className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
+                     className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200 transition-colors cursor-pointer"
                      title="Clear search"
                    >
                      <X className="h-4 w-4" />
@@ -192,7 +190,7 @@ const DoctorsList = () => {
                   const element = document.getElementById('specialist-results');
                   if (element) element.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="bg-primary-600 hover:bg-primary-700 active:scale-95 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-100 flex items-center justify-center space-x-2 cursor-pointer"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-md shadow-blue-600/20 flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <Search className="h-5 w-5" />
                 <span>Search</span>
@@ -201,7 +199,7 @@ const DoctorsList = () => {
 
            {/* Specialty Filter Chips */}
            <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
-              <div className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider pl-1 mr-1 flex-shrink-0">
+              <div className="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 mr-1 flex-shrink-0">
                 <Filter className="w-3.5 h-3.5 mr-1" /> Filters:
               </div>
               {SPECIALTY_CHIPS.map((spec) => {
@@ -219,8 +217,8 @@ const DoctorsList = () => {
                     }}
                     className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-primary-600 text-white shadow-md shadow-indigo-200 scale-105'
-                        : 'bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-primary-600'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 scale-105'
+                        : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600'
                     }`}
                   >
                     {spec}
@@ -233,8 +231,8 @@ const DoctorsList = () => {
         {/* Results Header */}
         <div id="specialist-results" className="flex justify-between items-center mb-6 px-2">
            <div>
-             <h2 className="text-xl font-bold text-gray-800">Available Specialists</h2>
-             <p className="text-xs text-gray-400 mt-0.5">
+             <h2 className="text-xl font-bold text-slate-900">Available Specialists</h2>
+             <p className="text-xs text-slate-400 font-medium mt-0.5">
                Showing {filteredDoctors.length} {filteredDoctors.length === 1 ? 'doctor' : 'doctors'}
                {(searchTerm || selectedSpecialty !== 'All') && (
                  <span> matching your criteria</span>
@@ -244,7 +242,7 @@ const DoctorsList = () => {
            {(searchTerm || selectedSpecialty !== 'All') && (
              <button 
                onClick={clearFilters}
-               className="text-xs font-bold text-primary-600 hover:text-primary-700 hover:underline"
+               className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
              >
                Reset Filters
              </button>
@@ -253,16 +251,16 @@ const DoctorsList = () => {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="text-gray-400 text-sm font-medium">Finding available doctors...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="text-slate-400 text-sm font-medium">Finding available doctors...</p>
           </div>
         ) : filteredDoctors.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredDoctors.map(doctor => (
-              <div key={doctor._id} className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/60 transition-all duration-500 flex flex-col overflow-hidden">
+              <div key={doctor._id} className="group bg-white rounded-[2.5rem] border border-slate-200/80 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40 transition-all duration-300 flex flex-col overflow-hidden">
                 {/* Card Top */}
                 <div className="p-8 pb-4 flex items-start justify-between">
-                   <div className="h-20 w-20 rounded-[1.5rem] bg-indigo-50 flex items-center justify-center text-primary-600 font-bold text-3xl shadow-inner group-hover:scale-105 transition-transform duration-500 overflow-hidden">
+                   <div className="h-20 w-20 rounded-[1.5rem] bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-3xl shadow-inner group-hover:scale-105 transition-transform duration-300 overflow-hidden border border-blue-100">
                       <img 
                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent((doctor.name || 'Doctor').replace('Dr. ', ''))}&background=random&bold=true`} 
                         alt={doctor.name} 
@@ -270,42 +268,42 @@ const DoctorsList = () => {
                       />
                    </div>
                    <div className="flex flex-col items-end">
-                      <div className="flex items-center space-x-1 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-xl font-bold text-xs">
-                         <Star className="h-3.5 w-3.5 fill-current" />
+                      <div className="flex items-center space-x-1 bg-amber-50 text-amber-700 border border-amber-200/60 px-3 py-1.5 rounded-xl font-bold text-xs">
+                         <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                          <span>4.8</span>
                       </div>
-                      <span className="text-[10px] font-black text-gray-300 mt-2 tracking-widest uppercase">1.2K Reviews</span>
+                      <span className="text-[10px] font-black text-slate-300 mt-2 tracking-widest uppercase">1.2K Reviews</span>
                    </div>
                 </div>
 
                 {/* Card Body */}
                 <div className="px-8 py-4 flex-1">
                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="text-xl font-black text-gray-900 group-hover:text-primary-600 transition-colors">{doctor.name}</h3>
-                      <ShieldCheck className="h-5 w-5 text-primary-500 flex-shrink-0" />
+                      <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">{doctor.name}</h3>
+                      <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0" />
                    </div>
-                   <p className="text-primary-600 font-bold text-sm tracking-wide mb-4">{doctor.specialization || 'General Medicine'}</p>
+                   <p className="text-blue-600 font-bold text-sm tracking-wide mb-4">{doctor.specialization || 'General Medicine'}</p>
                    
                    <div className="space-y-2.5">
-                      <div className="flex items-center text-gray-500 text-sm font-medium">
-                         <MapPin className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                      <div className="flex items-center text-slate-500 text-sm font-medium">
+                         <MapPin className="h-4 w-4 mr-2 text-slate-400 flex-shrink-0" />
                          <span>Healthcare City, Medical Hub</span>
                       </div>
-                      <div className="flex items-center text-gray-500 text-sm font-medium">
-                         <Clock className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                      <div className="flex items-center text-slate-500 text-sm font-medium">
+                         <Clock className="h-4 w-4 mr-2 text-slate-400 flex-shrink-0" />
                          <span>{doctor.experience || 5}+ Years Experience • ${doctor.consultationFee || 100} Fee</span>
                       </div>
                    </div>
 
                    {/* Availability Preview */}
-                   <div className="mt-6 pt-6 border-t border-gray-50">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Available Slots</p>
+                   <div className="mt-6 pt-6 border-t border-slate-100">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Available Slots</p>
                       <div className="flex flex-wrap gap-2">
                         {doctor.availability?.length > 0 ? doctor.availability.slice(0, 3).map((av, i) => (
-                          <span key={i} className="text-[10px] bg-indigo-50 text-primary-700 px-3 py-1.5 rounded-lg font-bold border border-indigo-100/60">
+                          <span key={i} className="text-[10px] bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg font-bold border border-blue-100">
                             {av.day.substring(0,3)} {av.startTime}
                           </span>
-                        )) : <span className="text-xs text-gray-400">Slots on request</span>}
+                        )) : <span className="text-xs text-slate-400 font-medium">Slots on request</span>}
                       </div>
                    </div>
                 </div>
@@ -314,7 +312,7 @@ const DoctorsList = () => {
                 <div className="p-8 pt-4">
                    <button 
                      onClick={() => handleBookingStart(doctor)}
-                     className="w-full bg-primary-600 text-white py-4 rounded-2xl font-black text-base hover:bg-primary-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer"
+                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold text-base transition-all shadow-md shadow-blue-600/20 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer"
                    >
                      <Calendar className="h-5 w-5" />
                      <span>Book Appointment</span>
@@ -324,15 +322,15 @@ const DoctorsList = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-[2.5rem] p-16 text-center border border-gray-100 shadow-sm">
-            <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-black text-gray-800 mb-2">No Doctors Found</h3>
-            <p className="text-gray-500 text-sm max-w-md mx-auto mb-6">
-              We couldn't find any medical specialists matching "<span className="font-semibold text-gray-700">{searchTerm}</span>". Try searching by another specialty or doctor name.
+          <div className="bg-white rounded-[2.5rem] p-16 text-center border border-slate-200/80 shadow-sm">
+            <Search className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-2xl font-black text-slate-800 mb-2">No Doctors Found</h3>
+            <p className="text-slate-500 text-sm max-w-md mx-auto mb-6 font-medium">
+              We couldn't find any medical specialists matching "<span className="font-semibold text-slate-700">{searchTerm}</span>". Try searching by another specialty or doctor name.
             </p>
             <button
               onClick={clearFilters}
-              className="px-6 py-3 bg-primary-600 text-white rounded-xl font-bold text-sm hover:bg-primary-700 transition shadow-md shadow-indigo-100 cursor-pointer"
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow-md shadow-blue-600/20 cursor-pointer"
             >
               Show All Doctors
             </button>
@@ -342,64 +340,64 @@ const DoctorsList = () => {
 
       {/* Booking Modal */}
       {selectedDoctor && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-scale-up border border-white/20">
-            <div className="bg-primary-600 p-8 md:p-10 text-white relative">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-200">
+            <div className="bg-blue-600 p-8 md:p-10 text-white relative">
                <h2 className="text-2xl md:text-3xl font-black">Schedule Consultation</h2>
-               <p className="text-indigo-100 text-base md:text-lg mt-1">Dr. {selectedDoctor.name} ({selectedDoctor.specialization || 'Specialist'})</p>
+               <p className="text-blue-100 text-base md:text-lg mt-1 font-medium">Dr. {selectedDoctor.name} ({selectedDoctor.specialization || 'Specialist'})</p>
                <button onClick={() => setSelectedDoctor(null)} className="absolute top-8 right-8 bg-white/20 p-2 rounded-2xl hover:bg-white/30 transition-all cursor-pointer">
-                  <X className="h-7 w-7" />
+                  <X className="h-7 w-7 text-white" />
                </button>
             </div>
             
             <div className="p-8 md:p-10">
               {success ? (
-                <div className="text-center py-12 animate-fade-in">
-                  <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-[2rem] bg-green-100 text-green-600 mb-6">
+                <div className="text-center py-12">
+                  <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-[2rem] bg-emerald-100 text-emerald-600 mb-6">
                      <ShieldCheck className="h-10 w-10" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-black text-gray-900 mb-3">Request Successful!</h3>
-                  <p className="text-gray-500 font-medium text-base">Your appointment request has been sent for approval. You will receive a notification shortly.</p>
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-3">Request Successful!</h3>
+                  <p className="text-slate-500 font-medium text-base">Your appointment request has been sent for approval. You will receive a notification shortly.</p>
                 </div>
               ) : (
                 <form onSubmit={handleBookSubmit} className="space-y-6">
                   {/* Slots Info */}
-                  <div className="bg-indigo-50/50 rounded-3xl p-6 border border-indigo-100">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center">
+                  <div className="bg-blue-50/70 rounded-3xl p-6 border border-blue-100">
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-3 flex items-center">
                        <Clock className="h-4 w-4 mr-2" /> Verified Working Hours
                     </p>
                     <div className="flex flex-wrap gap-2.5">
                       {selectedDoctor.availability?.length > 0 ? selectedDoctor.availability.map((av, i) => (
-                        <div key={i} className="bg-white text-primary-700 px-3.5 py-2 rounded-xl text-xs font-black shadow-sm border border-indigo-100">
+                        <div key={i} className="bg-white text-blue-700 px-3.5 py-2 rounded-xl text-xs font-black shadow-xs border border-blue-100">
                           {av.day}: {av.startTime} - {av.endTime}
                         </div>
-                      )) : <span className="text-sm text-gray-500">General Hours: Mon-Fri (9:00 - 17:00)</span>}
+                      )) : <span className="text-sm text-slate-500 font-medium">General Hours: Mon-Fri (9:00 - 17:00)</span>}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Preferred Date *</label>
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Preferred Date *</label>
                        <input 
                          type="date" required value={date} onChange={(e) => setDate(e.target.value)}
-                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none font-bold text-sm"
+                         className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-100 focus:border-blue-600 outline-none font-bold text-sm text-slate-900"
                        />
                     </div>
                     <div className="space-y-1.5">
-                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Preferred Time *</label>
+                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Preferred Time *</label>
                        <input 
                          type="time" required value={time} onChange={(e) => setTime(e.target.value)}
-                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none font-bold text-sm"
+                         className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-100 focus:border-blue-600 outline-none font-bold text-sm text-slate-900"
                        />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Describe Your Condition *</label>
+                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Describe Your Condition *</label>
                      <textarea 
                        required value={reason} onChange={(e) => setReason(e.target.value)}
                        placeholder="Please briefly describe your symptoms or reason for visit..."
-                       className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-primary-500 outline-none font-medium text-sm"
+                       className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-100 focus:border-blue-600 outline-none font-semibold text-sm text-slate-900"
                        rows="3"
                      ></textarea>
                   </div>
@@ -407,7 +405,7 @@ const DoctorsList = () => {
                   <button 
                     type="submit" 
                     disabled={booking}
-                    className="w-full bg-primary-600 text-white py-4.5 rounded-2xl text-lg font-black shadow-xl shadow-indigo-100 hover:bg-primary-700 transition-all flex justify-center items-center group cursor-pointer disabled:opacity-50"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4.5 rounded-2xl text-lg font-black shadow-lg shadow-blue-600/20 transition-all flex justify-center items-center group cursor-pointer disabled:opacity-50"
                   >
                     {booking ? (
                       <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-white"></div>

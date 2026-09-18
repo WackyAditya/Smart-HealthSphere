@@ -26,19 +26,19 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed w-full z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <nav className="fixed w-full z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            {/* Logo */}
+            {/* Logo matching Admin Header style */}
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+              <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2.5 rounded-2xl shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
                 <HeartPulse className="h-6 w-6 text-white" />
               </div>
               <div>
-                <span className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+                <span className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
                   Smart HealthSphere
                 </span>
-                <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400">
+                <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase text-blue-600">
                   <ShieldCheck className="w-3 h-3 text-emerald-500" />
                   AI Triage & Encrypted EHR
                 </div>
@@ -51,8 +51,8 @@ const Navbar = () => {
                 to="/" 
                 className={`font-semibold text-sm transition-colors ${
                   location.pathname === '/' 
-                    ? 'text-indigo-600 dark:text-indigo-400' 
-                    : 'text-slate-600 hover:text-indigo-600 dark:text-slate-300'
+                    ? 'text-blue-600 font-bold' 
+                    : 'text-slate-600 hover:text-blue-600'
                 }`}
               >
                 Home
@@ -61,29 +61,29 @@ const Navbar = () => {
                 to="/doctors" 
                 className={`font-semibold text-sm transition-colors ${
                   location.pathname === '/doctors' 
-                    ? 'text-indigo-600 dark:text-indigo-400' 
-                    : 'text-slate-600 hover:text-indigo-600 dark:text-slate-300'
+                    ? 'text-blue-600 font-bold' 
+                    : 'text-slate-600 hover:text-blue-600'
                 }`}
               >
                 Find a Doctor
               </Link>
 
-              {/* AI Triage Modal Trigger */}
+              {/* AI Triage Trigger */}
               <button
                 onClick={() => setIsTriageOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-semibold text-xs hover:shadow-md transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50/80 hover:bg-blue-100 border border-blue-200/80 text-blue-700 font-semibold text-xs transition cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
                 <span>AI Symptom Triage</span>
               </button>
 
               {/* Auth / Profile Area */}
-              <div className="flex items-center space-x-3 border-l border-slate-200 dark:border-slate-700 pl-6">
+              <div className="flex items-center space-x-3 border-l border-slate-200/80 pl-6">
                 {user ? (
                   <div className="flex items-center space-x-3">
                     <Link 
                       to={getDashboardPath()}
-                      className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center space-x-1.5"
+                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-600/20 transition flex items-center space-x-1.5"
                     >
                       <LayoutDashboard className="h-4 w-4" />
                       <span>{user.role === 'doctor' ? 'Doctor Portal' : user.role === 'admin' ? 'Admin Portal' : 'Patient Dashboard'}</span>
@@ -92,7 +92,7 @@ const Navbar = () => {
                     <button
                       onClick={logout}
                       title="Logout"
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" />
                     </button>
@@ -101,14 +101,14 @@ const Navbar = () => {
                   <>
                     <Link 
                       to="/login" 
-                      className="text-indigo-600 dark:text-indigo-400 font-semibold text-sm hover:text-indigo-700 flex items-center space-x-1"
+                      className="text-blue-600 font-bold text-sm hover:text-blue-700 flex items-center space-x-1"
                     >
                       <LogIn className="h-4 w-4" />
                       <span>Log in</span>
                     </Link>
                     <Link 
                       to="/register" 
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center space-x-1.5"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-600/20 transition flex items-center space-x-1.5"
                     >
                       <User className="h-4 w-4" />
                       <span>Sign up</span>
