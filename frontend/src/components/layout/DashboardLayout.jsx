@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSearch } from '../../context/SearchContext';
 
 const DashboardLayout = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { searchTerm, setSearchTerm } = useSearch();
   const navigate = useNavigate();
   
@@ -132,7 +132,9 @@ const DashboardLayout = () => {
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</button>
                   <button 
                     onClick={() => {
+                      if (logout) logout();
                       localStorage.removeItem('token');
+                      localStorage.removeItem('user');
                       window.location.href = '/login';
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"

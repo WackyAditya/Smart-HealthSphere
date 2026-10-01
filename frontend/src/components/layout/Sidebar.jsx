@@ -4,18 +4,15 @@ import {
   LayoutDashboard, 
   Calendar, 
   FileText, 
-  Settings, 
-  LogOut,
-  LogIn,
-  User,
-  HeartPulse,
-  Clock
+  User, 
+  HeartPulse, 
+  Clock 
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   
   // Use logged in user role, or fallback to URL path, or default to patient
   const pathRole = location.pathname.split('/')[1];
@@ -44,15 +41,6 @@ const Sidebar = () => {
 
   const links = role === 'admin' ? adminLinks : role === 'doctor' ? doctorLinks : patientLinks;
 
-  const handleLogout = () => {
-    if (logout) {
-      logout();
-    } else {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-  };
-
   return (
     <div className="w-64 bg-primary-600 h-screen fixed left-0 top-0 flex flex-col shadow-xl z-40 rounded-tr-3xl rounded-br-3xl">
       <div className="h-24 flex items-center justify-center px-6">
@@ -80,18 +68,6 @@ const Sidebar = () => {
             </Link>
           );
         })}
-      </div>
-
-      <div className="p-6 flex justify-center border-t border-primary-500">
-        {user ? (
-          <button onClick={handleLogout} className="text-indigo-200 hover:text-white transition-colors cursor-pointer" title="Log out">
-            <LogOut className="h-6 w-6" />
-          </button>
-        ) : (
-          <Link to="/login" className="text-indigo-200 hover:text-white transition-colors" title="Log in">
-            <LogIn className="h-6 w-6" />
-          </Link>
-        )}
       </div>
     </div>
   );
