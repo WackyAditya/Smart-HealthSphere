@@ -87,7 +87,6 @@ const PatientDashboard = () => {
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-gray-800">Recent Appointments</h3>
-            <button className="text-primary-500 text-sm font-medium">See More</button>
           </div>
           
           <div className="w-full">
@@ -134,9 +133,7 @@ const PatientDashboard = () => {
                 </div>
               )}
             </div>
-            <div className="text-center mt-6">
-               <button className="text-primary-500 text-sm font-medium">More..</button>
-            </div>
+
           </div>
         </div>
 
