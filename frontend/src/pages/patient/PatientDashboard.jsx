@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, CheckCircle, MoreHorizontal } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
-const COLORS = ['#4F46E5', '#F59E0B', '#EC4899'];
+const COLORS = ['#4F46E5', '#10B981', '#EF4444'];
 
 const PatientDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
@@ -22,10 +24,16 @@ const PatientDashboard = () => {
     fetchAppointments();
   }, []);
 
-  const chartData = [
-    { name: 'Pending', value: appointments.filter(a => a.status === 'pending').length },
-    { name: 'Confirmed', value: appointments.filter(a => a.status === 'confirmed').length || 1 }, // default 1 to keep rendering
-    { name: 'Cancelled', value: appointments.filter(a => a.status === 'cancelled').length },
+  const pendingCount = appointments.filter(a => a.status === 'pending').length;
+  const confirmedCount = appointments.filter(a => a.status === 'confirmed').length;
+  const cancelledCount = appointments.filter(a => a.status === 'cancelled').length;
+
+  const chartData = appointments.length === 0 ? [
+    { name: 'No Appointments', value: 1 }
+  ] : [
+    { name: 'Pending', value: pendingCount },
+    { name: 'Confirmed', value: confirmedCount },
+    { name: 'Cancelled', value: cancelledCount },
   ];
 
   const getGreeting = () => {
@@ -43,10 +51,10 @@ const PatientDashboard = () => {
         <div className="lg:col-span-1 bg-indigo-100 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-center">
           <div className="relative z-10">
             <h2 className="text-2xl font-bold text-gray-800">
-              {getGreeting()}, <span className="text-red-500">{user?.name || 'Rogar Curtis'}</span>
+              {getGreeting()}, <span className="text-primary-700">{user?.name || 'Patient'}</span>
             </h2>
             <p className="text-sm text-gray-600 mt-2 max-w-xs">
-              Whatever you do, do with determination. You have one life to live; do your work with passion and give your best.
+              Welcome to your personal healthcare portal. Manage your upcoming consultations and access encrypted records.
             </p>
           </div>
         </div>
@@ -129,7 +137,7 @@ const PatientDashboard = () => {
               }) : (
                 <div className="text-center py-8 text-gray-500">
                   <p>No appointments scheduled yet.</p>
-                  <button onClick={() => window.location.href='/doctors'} className="mt-4 btn-primary text-sm">Book an Appointment</button>
+                  <button onClick={() => navigate('/doctors')} className="mt-4 btn-primary text-sm cursor-pointer">Book an Appointment</button>
                 </div>
               )}
             </div>
@@ -140,7 +148,7 @@ const PatientDashboard = () => {
         {/* Chart Section */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-gray-800">Last day Patients Result</h3>
+            <h3 className="text-lg font-bold text-gray-800">Appointment Status Overview</h3>
             <MoreHorizontal className="text-gray-400 h-5 w-5" />
           </div>
           

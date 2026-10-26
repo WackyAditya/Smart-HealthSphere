@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-cbc';
-// Derive 32-byte key from JWT_SECRET or fallback key
+// Derive 32-byte key from dedicated ENCRYPTION_KEY or fallback
 const getSecretKey = () => {
-  const secret = process.env.JWT_SECRET || 'smarthealthsphere2026encryptedkey';
+  const secret = process.env.ENCRYPTION_KEY || process.env.EHR_ENCRYPTION_KEY || process.env.JWT_SECRET || 'smarthealthsphere2026encryptedkey';
   return crypto.createHash('sha256').update(String(secret)).digest();
 };
 

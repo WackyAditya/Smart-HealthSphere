@@ -30,7 +30,7 @@ const DoctorAppointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/appointments/my-appointments');
+      const res = await api.get('/appointments/me');
       setAppointments(res.data);
     } catch (error) {
       console.error('Error fetching doctor appointments:', error);

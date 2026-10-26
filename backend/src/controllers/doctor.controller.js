@@ -32,7 +32,8 @@ export const getDoctorDashboard = async (req, res) => {
       .populate('patient', 'name email')
       .sort({ date: 1 });
       
-    const totalPatients = [...new Set(appointments.map(a => a.patient._id.toString()))].length;
+    // Bug 21 Fix: Safely filter out null/deleted patients
+    const totalPatients = [...new Set(appointments.map(a => a.patient?._id?.toString()).filter(Boolean))].length;
     const pendingAppointments = appointments.filter(a => a.status === 'pending').length;
     const completedAppointments = appointments.filter(a => a.status === 'completed').length;
     
@@ -50,6 +51,18 @@ export const getDoctorDashboard = async (req, res) => {
 export const updateAvailability = async (req, res) => {
   try {
     const { availability } = req.body;
+    
+    // Bug 23 Fix: Validate that startTime < endTime for each slot
+    if (Array.isArray(availability)) {
+      for (const slot of availability) {
+        if (slot.startTime && slot.endTime && slot.startTime >= slot.endTime) {
+          return res.status(400).json({ 
+            message: `Invalid time slot on ${slot.day}: Start time (${slot.startTime}) must be earlier than end time (${slot.endTime})` 
+          });
+        }
+      }
+    }
+
     const doctor = await User.findById(req.user._id);
     
     if (doctor) {
@@ -71,9 +84,9 @@ export const listPatientsForDoctor = async (req, res) => {
       .select('name email _id phone createdAt')
       .sort({ name: 1 });
 
-    // Also get appointments to see which patients have consultations with this doctor
+    // Bug 21 Fix: Filter null/deleted patients safely
     const doctorAppointments = await Appointment.find({ doctor: req.user._id }).select('patient');
-    const consultedPatientIds = new Set(doctorAppointments.map(a => a.patient.toString()));
+    const consultedPatientIds = new Set(doctorAppointments.map(a => a.patient?.toString()).filter(Boolean));
 
     const formatted = patients.map(p => ({
       _id: p._id,

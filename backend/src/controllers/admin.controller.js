@@ -10,9 +10,9 @@ export const getAnalytics = async (req, res) => {
     const totalAppointments = await Appointment.countDocuments();
     const totalRecords = await MedicalRecord.countDocuments();
     
-    // Revenue mock calculation based on completed appointments
-    const completedAppointments = await Appointment.countDocuments({ status: 'completed' });
-    const mockRevenue = completedAppointments * 150; // assuming $150 average fee
+    // Bug 27 Fix: Calculate revenue based on actual doctor consultation fees
+    const completedAppointments = await Appointment.find({ status: 'completed' }).populate('doctor', 'consultationFee');
+    const mockRevenue = completedAppointments.reduce((acc, apt) => acc + (apt.doctor?.consultationFee || 100), 0);
 
     res.json({
       totalUsers,
@@ -38,10 +38,23 @@ export const manageUsers = async (req, res) => {
 
 export const updateUserStatus = async (req, res) => {
   try {
-    const { status } = req.body; // active/inactive
-    // Here we can use isApproved or a new isActive field. Let's assume there is an isActive field or similar.
-    // For simplicity, we just return the user object as if updated.
-    res.json({ message: 'User status updated successfully' });
+    const { status, isActive } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Bug 34 Fix: Update actual isActive field in database
+    if (typeof isActive === 'boolean') {
+      user.isActive = isActive;
+    } else if (status === 'active') {
+      user.isActive = true;
+    } else if (status === 'inactive' || status === 'deactivated') {
+      user.isActive = false;
+    }
+
+    await user.save();
+    res.json({ message: 'User status updated successfully', user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

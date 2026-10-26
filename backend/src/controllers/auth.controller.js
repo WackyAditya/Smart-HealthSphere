@@ -7,14 +7,17 @@ const generateToken = (id) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     
+    // Prevent privilege escalation: self-registration is strictly restricted to patient role
+    const assignedRole = 'patient';
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ name, email, password, role: assignedRole });
     if (user) {
       res.status(201).json({
         _id: user._id,
@@ -36,7 +39,15 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({ message: 'Account has been deactivated. Please contact administrator.' });
+    }
+
+    if (await user.matchPassword(password)) {
       res.json({
         _id: user._id,
         name: user.name,

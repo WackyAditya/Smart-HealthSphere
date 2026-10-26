@@ -74,8 +74,8 @@ ${doctorsContext}
       parts: [{ text: message }]
     });
 
-    // Use latest high-speed Gemini 3.6 Flash
-    const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    // Use official Gemini Flash models
+    const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
     let response = null;
     let lastErr = null;
 

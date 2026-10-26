@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Activity, FileText, UserPlus, DollarSign } from 'lucide-react';
 import api from '../../api/axios';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalPatients: 0,
@@ -92,7 +94,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">New Appointment Requests</h2>
-              <button onClick={() => window.location.href='/admin/appointments'} className="text-primary-600 text-sm font-medium">View All</button>
+              <button onClick={() => navigate('/admin/appointments')} className="text-primary-600 hover:underline text-sm font-bold cursor-pointer">View All</button>
             </div>
             
             {pendingRequests.length > 0 ? (

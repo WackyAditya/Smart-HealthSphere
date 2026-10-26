@@ -87,6 +87,10 @@ const DoctorsList = () => {
       navigate('/login?redirect=/doctors&message=Only patients can book appointments. Please log in with a patient account.');
       return;
     }
+    const triageData = location.state?.triageResult;
+    if (triageData && !reason) {
+      setReason(`AI Triage [${triageData.triageLevel} - Score: ${triageData.riskScore}]: ${triageData.symptomsEvaluated || ''}`);
+    }
     setSelectedDoctor(doctor);
   };
 
@@ -98,7 +102,8 @@ const DoctorsList = () => {
         doctorId: selectedDoctor._id,
         date,
         time,
-        reason
+        reason,
+        triageResult: location.state?.triageResult || null
       });
       setSuccess(true);
       setTimeout(() => {
@@ -375,6 +380,7 @@ const DoctorsList = () => {
                       <input 
                         type="date" 
                         required 
+                        min={new Date().toISOString().split('T')[0]}
                         value={date} 
                         onChange={(e) => setDate(e.target.value)}
                         className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-medium text-xs"
@@ -400,7 +406,7 @@ const DoctorsList = () => {
                       onChange={(e) => setReason(e.target.value)}
                       placeholder="Please briefly describe your symptoms or reason for visit..."
                       className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-medium text-xs"
-                      rows="2.5"
+                      rows={3}
                     ></textarea>
                   </div>
 

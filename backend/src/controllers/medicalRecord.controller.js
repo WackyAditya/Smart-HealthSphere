@@ -21,11 +21,12 @@ export const uploadRecord = async (req, res) => {
       validRecordType = 'Clinical Note';
     }
 
+    // Bug 31 Fix: Do NOT store unencrypted plaintext in MongoDB
     const record = await MedicalRecord.create({
       patient,
-      doctor,
+      doctor: doctor || req.user._id,
       title,
-      description: description || 'Clinical evaluation record',
+      description: '[Encrypted Clinical Note]', // Plaintext never stored in DB
       encryptedDescription: encryptedData,
       iv: iv,
       isEncrypted: true,
@@ -34,7 +35,15 @@ export const uploadRecord = async (req, res) => {
       vitals: vitals || {}
     });
 
-    res.status(201).json(record);
+    const populatedRecord = await record.populate([
+      { path: 'patient', select: 'name email' },
+      { path: 'doctor', select: 'name specialization' }
+    ]);
+
+    const resultObj = populatedRecord.toObject();
+    resultObj.decryptedDescription = description || 'Clinical evaluation record';
+
+    res.status(201).json(resultObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -46,7 +55,16 @@ export const viewRecords = async (req, res) => {
     if (req.user.role === 'patient') {
       query = { patient: req.user._id };
     } else if (req.user.role === 'doctor') {
-      query = { doctor: req.user._id };
+      // Bug 19 Fix: Allow doctors to see records they authored OR records of patients who consulted with them
+      const Appointment = (await import('../models/Appointment.js')).default;
+      const doctorAppointments = await Appointment.find({ doctor: req.user._id }).select('patient');
+      const patientIds = doctorAppointments.map(a => a.patient).filter(Boolean);
+      query = {
+        $or: [
+          { doctor: req.user._id },
+          { patient: { $in: patientIds } }
+        ]
+      };
     }
     // Admin sees all records
 
@@ -71,7 +89,6 @@ export const viewRecords = async (req, res) => {
   }
 };
 
-
 export const deleteRecord = async (req, res) => {
   try {
     const record = await MedicalRecord.findById(req.params.id);
@@ -80,8 +97,12 @@ export const deleteRecord = async (req, res) => {
       return res.status(404).json({ message: 'Record not found' });
     }
 
-    // Only Admin or the Patient who owns it can delete
-    if (req.user.role !== 'admin' && record.patient.toString() !== req.user._id.toString()) {
+    const patientId = record.patient ? record.patient.toString() : null;
+    const doctorId = record.doctor ? record.doctor.toString() : null;
+    const userId = req.user._id.toString();
+
+    // Admin, patient owner, or creating doctor can delete
+    if (req.user.role !== 'admin' && patientId !== userId && doctorId !== userId) {
       return res.status(403).json({ message: 'Not authorized to delete this record' });
     }
 

@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   experience: { type: Number },
   consultationFee: { type: Number },
   isApproved: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
   availability: [{ day: String, startTime: String, endTime: String }]
 }, { timestamps: true });
 

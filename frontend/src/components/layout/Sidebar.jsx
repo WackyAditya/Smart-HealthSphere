@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const location = useLocation();
   const { user } = useAuth();
   
@@ -42,34 +42,54 @@ const Sidebar = () => {
   const links = role === 'admin' ? adminLinks : role === 'doctor' ? doctorLinks : patientLinks;
 
   return (
-    <div className="w-64 bg-primary-600 h-screen fixed left-0 top-0 flex flex-col shadow-xl z-40 rounded-tr-3xl rounded-br-3xl">
-      <div className="h-24 flex items-center justify-center px-6">
-        <Link to="/" className="text-2xl font-bold text-white flex items-center space-x-2" title="Smart HealthSphere">
-           <HeartPulse className="h-10 w-10 text-white" />
-        </Link>
+    <>
+      {/* Mobile Backdrop */}
+      {mobileOpen && (
+        <div 
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden"
+        />
+      )}
+
+      <div className={`w-64 bg-primary-600 h-screen fixed left-0 top-0 flex flex-col shadow-2xl z-50 rounded-tr-3xl rounded-br-3xl transition-transform duration-300 ease-in-out ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="h-24 flex items-center justify-between px-6 border-b border-white/10">
+          <Link to="/" className="text-xl font-extrabold text-white flex items-center space-x-3" title="Smart HealthSphere">
+             <div className="p-2 bg-white/20 rounded-xl">
+               <HeartPulse className="h-6 w-6 text-white" />
+             </div>
+             <span className="tracking-tight">HealthSphere</span>
+          </Link>
+        </div>
+        
+        <div className="flex-1 py-6 flex flex-col space-y-2 px-4 overflow-y-auto">
+          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-indigo-200/80">
+            {role.toUpperCase()} PORTAL
+          </div>
+          {links.map((link) => {
+            const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.name}
+                to={link.path}
+                onClick={() => setMobileOpen && setMobileOpen(false)}
+                className={`flex items-center space-x-3.5 px-4 py-3 rounded-2xl transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-white text-primary-600 shadow-md font-bold' 
+                    : 'text-indigo-100 hover:bg-primary-500 hover:text-white font-medium'
+                }`}
+                title={link.name}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className="text-sm truncate">{link.name}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
-      
-      <div className="flex-1 py-8 flex flex-col space-y-4 px-4">
-        {links.map((link) => {
-          const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
-          const Icon = link.icon;
-          return (
-            <Link
-              key={link.name}
-              to={link.path}
-              className={`flex items-center justify-center w-12 h-12 mx-auto rounded-xl transition-all cursor-pointer ${
-                isActive 
-                  ? 'bg-white text-primary-600 shadow-lg' 
-                  : 'text-indigo-200 hover:bg-primary-500 hover:text-white'
-              }`}
-              title={link.name}
-            >
-              <Icon className="h-6 w-6" />
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+    </>
   );
 };
 

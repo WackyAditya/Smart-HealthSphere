@@ -84,7 +84,10 @@ const DoctorDashboard = () => {
 
   const handleSavePrescription = async (e) => {
     e.preventDefault();
-    if (!selectedAppointment) return;
+    if (!selectedAppointment || !selectedAppointment.patient?._id) {
+      alert('Cannot create record: Patient account not found or removed.');
+      return;
+    }
     setSubmittingRecord(true);
     try {
       await api.post('/medical-records', {

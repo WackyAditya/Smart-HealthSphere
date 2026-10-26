@@ -54,6 +54,14 @@ const Availability = () => {
   };
 
   const saveSchedule = async () => {
+    // Bug 23 Fix: Validate that each slot start time is strictly earlier than end time
+    for (const slot of availability) {
+      if (slot.startTime && slot.endTime && slot.startTime >= slot.endTime) {
+        alert(`Invalid time slot on ${slot.day}: Start time (${slot.startTime}) must be earlier than end time (${slot.endTime})`);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       await api.patch('/doctors/availability/me', { availability });

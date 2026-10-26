@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, HeartPulse } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Mail, Lock, HeartPulse, AlertCircle, Info } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-
-import { useLocation } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,11 +14,14 @@ const Login = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showForgotNotice, setShowForgotNotice] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError('');
     const res = await login(email, password);
@@ -40,7 +41,7 @@ const Login = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center pt-28 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 glass-panel p-10 rounded-2xl">
+      <div className="max-w-md w-full space-y-8 glass-panel p-10 rounded-2xl shadow-xl">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-primary-100 text-primary-600 flex items-center justify-center rounded-xl mb-4">
             <HeartPulse className="h-8 w-8" />
@@ -49,13 +50,31 @@ const Login = () => {
             Welcome back
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to access your patient portal
+            Sign in to access your healthcare portal
           </p>
         </div>
+
+        {showForgotNotice && (
+          <div className="p-4 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-xl text-xs flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-primary-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Password Reset Instructions</p>
+              <p className="mt-0.5">Please contact your healthcare administrator or system support to reset your account credentials securely.</p>
+              <button 
+                onClick={() => setShowForgotNotice(false)} 
+                className="mt-2 text-primary-700 font-bold underline cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4 flex flex-col">
             {message && <div className="p-3 bg-blue-100 text-blue-700 text-sm rounded-lg border border-blue-200">{message}</div>}
             {error && <div className="p-3 bg-red-100 text-red-700 text-sm rounded-lg">{error}</div>}
+            
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-gray-400" />
@@ -71,6 +90,7 @@ const Login = () => {
                 placeholder="Email address"
               />
             </div>
+            
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-gray-400" />
@@ -94,23 +114,40 @@ const Login = () => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 cursor-pointer">
                 Remember me
               </label>
             </div>
 
             <div className="text-sm">
-              <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+              <button 
+                type="button"
+                onClick={() => setShowForgotNotice(true)}
+                className="font-medium text-primary-600 hover:text-primary-500 cursor-pointer"
+              >
                 Forgot your password?
-              </a>
+              </button>
             </div>
           </div>
 
           <div>
-            <button type="submit" className="btn-primary w-full flex justify-center py-3">
-              Sign in
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn-primary w-full flex justify-center py-3 disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                <span>Sign in</span>
+              )}
             </button>
           </div>
         </form>

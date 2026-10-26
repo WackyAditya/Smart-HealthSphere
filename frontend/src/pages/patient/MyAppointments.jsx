@@ -1,24 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Clock, CheckCircle, Video, Sparkles, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Clock, CheckCircle, Video, Sparkles, AlertCircle, XCircle } from 'lucide-react';
 import api from '../../api/axios';
 
 const MyAppointments = () => {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState('');
+
+  const fetchAppointments = async () => {
+    try {
+      const res = await api.get('/appointments/me');
+      setAppointments(res.data);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const res = await api.get('/appointments/me');
-        setAppointments(res.data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchAppointments();
   }, []);
+
+  const handleCancelAppointment = async (id) => {
+    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
+    try {
+      setActionLoading(id);
+      await api.patch(`/appointments/${id}/status`, { status: 'cancelled' });
+      await fetchAppointments();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to cancel appointment');
+    } finally {
+      setActionLoading('');
+    }
+  };
 
   const getTriageBadge = (level) => {
     switch (level) {
@@ -32,17 +49,17 @@ const MyAppointments = () => {
   const renderAppointments = (list) => (
     <div className="space-y-4">
       {list.length > 0 ? list.map((apt) => (
-        <div key={apt._id} className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all bg-white dark:bg-slate-800 space-y-4">
+        <div key={apt._id} className="p-5 rounded-2xl border border-slate-200 hover:shadow-lg transition-all bg-white space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             {/* Doctor info */}
             <div className="flex items-center space-x-4">
-              <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex-shrink-0 flex items-center justify-center overflow-hidden border border-indigo-200 dark:border-indigo-800">
-                <img src={`https://ui-avatars.com/api/?name=${apt.doctor?.name?.replace('Dr. ', '') || 'Doctor'}&background=random`} alt="Doctor" className="h-full w-full" />
+              <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex-shrink-0 flex items-center justify-center overflow-hidden border border-indigo-200">
+                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent((apt.doctor?.name || 'Doctor').replace('Dr. ', ''))}&background=random`} alt="Doctor" className="h-full w-full" />
               </div>
               <div>
-                <p className="font-bold text-slate-900 dark:text-white text-base">{apt.doctor?.name || 'Doctor'}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{apt.doctor?.specialization || 'General Practitioner'}</p>
+                <p className="font-bold text-slate-900 text-base">{apt.doctor?.name || 'Doctor'}</p>
+                <p className="text-xs text-slate-500">{apt.doctor?.specialization || 'General Practitioner'}</p>
                 
                 {/* Triage Badge if present */}
                 {apt.triageResult?.triageLevel && (
@@ -57,8 +74,8 @@ const MyAppointments = () => {
             {/* Date & Time */}
             <div className="flex items-center gap-6">
               <div>
-                <div className="flex items-center space-x-2 text-slate-800 dark:text-slate-200 font-medium text-sm">
-                  <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <div className="flex items-center space-x-2 text-slate-800 font-medium text-sm">
+                  <Calendar className="h-4 w-4 text-indigo-600" />
                   <span>{new Date(apt.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-slate-500 text-xs mt-1">
@@ -81,9 +98,9 @@ const MyAppointments = () => {
               </div>
             </div>
 
-            {/* Telemedicine Room CTA */}
-            {apt.telemedicineRoomUrl && (
-              <div>
+            {/* Action buttons (Bug 17 Fix: Cancel Appointment support) */}
+            <div className="flex items-center gap-2">
+              {apt.telemedicineRoomUrl && apt.status === 'confirmed' && (
                 <a
                   href={apt.telemedicineRoomUrl}
                   target="_blank"
@@ -91,14 +108,26 @@ const MyAppointments = () => {
                   className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/30 transition flex items-center justify-center gap-2"
                 >
                   <Video className="w-4 h-4 animate-pulse" />
-                  Join Telemedicine Room
+                  <span>Join Video Call</span>
                 </a>
-              </div>
-            )}
+              )}
+
+              {(apt.status === 'pending' || apt.status === 'confirmed') && (
+                <button
+                  onClick={() => handleCancelAppointment(apt._id)}
+                  disabled={actionLoading === apt._id}
+                  className="px-3 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-rose-200 cursor-pointer disabled:opacity-50"
+                  title="Cancel this appointment"
+                >
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>{actionLoading === apt._id ? 'Cancelling...' : 'Cancel'}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )) : (
-        <div className="text-center py-12 text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-sm">
+        <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-sm">
           No appointments found in this category.
         </div>
       )}
@@ -107,24 +136,28 @@ const MyAppointments = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Telemedicine Appointments</h1>
+          <h1 className="text-2xl font-bold text-slate-900">My Telemedicine Appointments</h1>
           <p className="text-slate-500 text-xs mt-1">Manage scheduled consultations and access virtual video clinic rooms.</p>
         </div>
-        <button onClick={() => window.location.href='/doctors'} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md transition">
+        {/* Bug 16 Fix: Use React Router navigate instead of window.location.href */}
+        <button 
+          onClick={() => navigate('/doctors')} 
+          className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl shadow-md transition cursor-pointer"
+        >
           Book New Consultation
         </button>
       </div>
 
       {loading ? (
         <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
       ) : (
         <div className="space-y-8">
           <div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4">Appointments & Telemedicine Rooms</h2>
+            <h2 className="text-lg font-bold text-slate-800 mb-4">Appointments & Telemedicine Rooms</h2>
             {renderAppointments(appointments)}
           </div>
         </div>
@@ -134,4 +167,3 @@ const MyAppointments = () => {
 };
 
 export default MyAppointments;
-

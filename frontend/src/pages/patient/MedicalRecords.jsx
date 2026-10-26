@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Download, Trash2, Plus, Lock, ShieldCheck, Eye, EyeOff, Key, Sparkles } from 'lucide-react';
+import { FileText, Download, Trash2, Plus, Lock, ShieldCheck, Eye, EyeOff, Key, Sparkles, User, AlertCircle } from 'lucide-react';
 import api from '../../api/axios';
 
 const MedicalRecords = () => {
   const [records, setRecords] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRawCipher, setShowRawCipher] = useState(false);
 
@@ -12,7 +13,9 @@ const MedicalRecords = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [recordType, setRecordType] = useState('Clinical Note');
+  const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const [fileUrl, setFileUrl] = useState('');
+  const [formError, setFormError] = useState('');
 
   const fetchRecords = async () => {
     try {
@@ -25,28 +28,54 @@ const MedicalRecords = () => {
     }
   };
 
+  const fetchDoctors = async () => {
+    try {
+      const res = await api.get('/doctors');
+      setDoctors(res.data || []);
+      if (res.data?.length > 0 && !selectedDoctorId) {
+        setSelectedDoctorId(res.data[0]._id);
+      }
+    } catch (err) {
+      console.error('Error fetching doctors:', err);
+    }
+  };
+
   useEffect(() => {
     fetchRecords();
+    fetchDoctors();
   }, []);
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    // Bug 18 Fix: Sanitize and validate file URL to prevent XSS / malicious schemes
+    let cleanUrl = fileUrl.trim();
+    if (cleanUrl) {
+      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+        setFormError('Attachment URL must start with http:// or https://');
+        return;
+      }
+    }
+
     setUploading(true);
     try {
       await api.post('/medical-records', {
         title,
         description,
         recordType,
-        fileUrl: fileUrl || '#'
+        doctorId: selectedDoctorId || undefined, // Bug 19 Fix: Link to selected doctor
+        fileUrl: cleanUrl || '#'
       });
-      fetchRecords();
+      await fetchRecords();
       setShowModal(false);
       setTitle('');
       setDescription('');
       setFileUrl('');
+      setFormError('');
     } catch (error) {
       console.error(error);
-      alert('Error uploading record');
+      setFormError(error.response?.data?.message || 'Error uploading record');
     } finally {
       setUploading(false);
     }
@@ -60,6 +89,10 @@ const MedicalRecords = () => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const isSafeUrl = (url) => {
+    return url && typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'));
   };
 
   return (
@@ -89,7 +122,10 @@ const MedicalRecords = () => {
           </button>
 
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setFormError('');
+              setShowModal(true);
+            }}
             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/40 flex items-center gap-2 transition cursor-pointer"
           >
             <Plus className="h-5 w-5" />
@@ -105,7 +141,7 @@ const MedicalRecords = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {records.length > 0 ? records.map((record) => (
-            <div key={record._id} className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition flex flex-col justify-between relative group">
+            <div key={record._id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition flex flex-col justify-between relative group">
               <div>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
@@ -113,7 +149,7 @@ const MedicalRecords = () => {
                       <Lock className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-600 dark:text-indigo-400 block">
+                      <span className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-600 block">
                         {record.recordType || 'Clinical Note'}
                       </span>
                       <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
@@ -123,12 +159,17 @@ const MedicalRecords = () => {
                     </div>
                   </div>
 
-                  <button onClick={() => handleDelete(record._id)} className="text-slate-400 hover:text-red-500 p-1.5 transition">
+                  <button onClick={() => handleDelete(record._id)} className="text-slate-400 hover:text-red-500 p-1.5 transition cursor-pointer" title="Delete record">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
-                <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2">{record.title}</h3>
+                <h3 className="font-bold text-slate-900 text-base mb-1">{record.title}</h3>
+                {record.doctor?.name && (
+                  <p className="text-xs text-primary-600 font-semibold mb-3">
+                    Assigned: Dr. {record.doctor.name} ({record.doctor.specialization || 'Specialist'})
+                  </p>
+                )}
 
                 {/* Content area: Ciphertext vs Decrypted */}
                 {showRawCipher ? (
@@ -137,28 +178,29 @@ const MedicalRecords = () => {
                     <div><span className="text-slate-500">CIPHER:</span> {record.encryptedDescription || 'e4a2c9180b72...'}</div>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mb-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 leading-relaxed">
+                  <p className="text-xs text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed whitespace-pre-line">
                     {record.decryptedDescription || record.description || 'Encrypted clinical record.'}
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700/60 mt-2 text-xs text-slate-400">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs text-slate-400">
                 <span>{new Date(record.createdAt).toLocaleDateString()}</span>
-                {record.fileUrl && record.fileUrl !== '#' && (
-                  <a href={record.fileUrl} target="_blank" rel="noreferrer" className="flex items-center space-x-1 font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                {/* Bug 18 Fix: Safe verified URL download link */}
+                {isSafeUrl(record.fileUrl) && (
+                  <a href={record.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 font-semibold text-indigo-600 hover:underline">
                     <Download className="h-3.5 w-3.5" />
-                    <span>Download PDF</span>
+                    <span>View Attachment</span>
                   </a>
                 )}
               </div>
             </div>
           )) : (
-            <div className="col-span-full bg-white dark:bg-slate-800 rounded-3xl p-12 text-center border border-dashed border-slate-300 dark:border-slate-700">
+            <div className="col-span-full bg-white rounded-3xl p-12 text-center border border-dashed border-slate-300">
               <div className="h-16 w-16 bg-indigo-500/10 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock className="h-8 w-8" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No EHR Records Found</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">No EHR Records Found</h3>
               <p className="text-slate-500 text-sm max-w-sm mx-auto">Upload or record clinical evaluations to store them in your AES-256 encrypted EHR vault.</p>
             </div>
           )}
@@ -168,22 +210,29 @@ const MedicalRecords = () => {
       {/* Upload Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 border border-slate-200 dark:border-slate-700">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 border border-slate-200">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <Lock className="w-5 h-5 text-indigo-600" />
                 Add Encrypted EHR Record
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
             </div>
+
+            {formError && (
+              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs mb-4 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleUpload} className="space-y-4 text-sm">
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Record Type</label>
+                <label className="block font-semibold text-slate-700 mb-1">Record Type</label>
                 <select
                   value={recordType}
                   onChange={e => setRecordType(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300 bg-white"
                 >
                   <option value="Clinical Note">Clinical Note</option>
                   <option value="Prescription">Prescription</option>
@@ -192,36 +241,54 @@ const MedicalRecords = () => {
                 </select>
               </div>
 
+              {/* Bug 19 Fix: Select Attending Doctor */}
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Title</label>
+                <label className="block font-semibold text-slate-700 mb-1">Assign Attending Doctor</label>
+                <select
+                  value={selectedDoctorId}
+                  onChange={e => setSelectedDoctorId(e.target.value)}
+                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300 bg-white"
+                >
+                  <option value="">-- General / No Specific Doctor --</option>
+                  {doctors.map(d => (
+                    <option key={d._id} value={d._id}>
+                      Dr. {d.name} ({d.specialization || 'Specialist'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Title *</label>
                 <input
                   required
                   type="text"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300"
                   placeholder="e.g. Cardiology Assessment & Vitals"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Clinical Details (Encrypted AES-256)</label>
+                <label className="block font-semibold text-slate-700 mb-1">Clinical Details (Encrypted AES-256) *</label>
                 <textarea
+                  required
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300"
                   rows="3"
                   placeholder="Enter medical notes, diagnosis, or prescription instructions..."
                 ></textarea>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Attachment File URL (Optional)</label>
+                <label className="block font-semibold text-slate-700 mb-1">Attachment File URL (Optional)</label>
                 <input
                   type="url"
                   value={fileUrl}
                   onChange={e => setFileUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border rounded-xl border-slate-300"
                   placeholder="https://..."
                 />
               </div>
@@ -229,7 +296,7 @@ const MedicalRecords = () => {
               <button
                 type="submit"
                 disabled={uploading}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Lock className="w-4 h-4" />
                 {uploading ? 'Encrypting & Storing...' : 'Save & Encrypt Record'}
@@ -243,4 +310,3 @@ const MedicalRecords = () => {
 };
 
 export default MedicalRecords;
-

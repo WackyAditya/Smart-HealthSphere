@@ -356,7 +356,7 @@ const PatientRecords = () => {
                 </select>
 
                 {/* Quick select patient chips */}
-                {patients.length > 0 && (
+                {patients.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {patients.map(p => (
                       <button
@@ -373,6 +373,10 @@ const PatientRecords = () => {
                       </button>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 mt-1">
+                    No registered patients found. Patients who book a consultation with you will appear here automatically.
+                  </p>
                 )}
               </div>
 
@@ -404,7 +408,7 @@ const PatientRecords = () => {
 
               <button 
                 type="submit" 
-                disabled={submitting}
+                disabled={submitting || patients.length === 0}
                 className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {submitting ? (

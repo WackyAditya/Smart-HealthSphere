@@ -23,8 +23,10 @@ const Home = () => {
   const { user } = useAuth();
   const [isTriageOpen, setIsTriageOpen] = useState(false);
 
-  const handleSelectSpecialty = (specialty) => {
-    navigate(`/doctors?specialization=${encodeURIComponent(specialty)}`);
+  const handleSelectSpecialty = (specialty, triageResult) => {
+    navigate(`/doctors?specialization=${encodeURIComponent(specialty)}`, {
+      state: { triageResult }
+    });
   };
 
   const getDashboardRoute = () => {

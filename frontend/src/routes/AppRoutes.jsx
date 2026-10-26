@@ -28,6 +28,11 @@ import DoctorAppointments from '../pages/doctor/DoctorAppointments';
 import PatientRecords from '../pages/doctor/PatientRecords';
 import Availability from '../pages/doctor/Availability';
 
+// Security & Protected Routes
+import ProtectedRoute from './ProtectedRoute';
+import Unauthorized from '../pages/Unauthorized';
+import NotFound from '../pages/NotFound';
+
 import HealthConciergeBot from '../components/chat/HealthConciergeBot';
 
 // A layout for public pages (with Navbar)
@@ -49,34 +54,35 @@ const AppRoutes = () => {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
         </Route>
 
         {/* Dashboard Routes with Sidebar (Matching Admin Overview layout) */}
         <Route element={<DashboardLayout />}>
           <Route path="/doctors" element={<DoctorsList />} />
           
-          {/* Patient */}
-          <Route path="/patient/dashboard" element={<PatientDashboard />} />
-          <Route path="/patient/doctors" element={<DoctorsList />} />
-          <Route path="/patient/appointments" element={<MyAppointments />} />
-          <Route path="/patient/records" element={<MedicalRecords />} />
+          {/* Patient Routes - Protected for Patients and Admins */}
+          <Route path="/patient/dashboard" element={<ProtectedRoute allowedRoles={['patient', 'admin']}><PatientDashboard /></ProtectedRoute>} />
+          <Route path="/patient/doctors" element={<ProtectedRoute allowedRoles={['patient', 'admin']}><DoctorsList /></ProtectedRoute>} />
+          <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={['patient', 'admin']}><MyAppointments /></ProtectedRoute>} />
+          <Route path="/patient/records" element={<ProtectedRoute allowedRoles={['patient', 'admin']}><MedicalRecords /></ProtectedRoute>} />
           
-          {/* Admin */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<ManageUsers />} />
-          <Route path="/admin/doctors" element={<ManageDoctors />} />
-          <Route path="/admin/appointments" element={<ManageAppointments />} />
+          {/* Admin Routes - Strictly Protected for Admins */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><ManageUsers /></ProtectedRoute>} />
+          <Route path="/admin/doctors" element={<ProtectedRoute allowedRoles={['admin']}><ManageDoctors /></ProtectedRoute>} />
+          <Route path="/admin/appointments" element={<ProtectedRoute allowedRoles={['admin']}><ManageAppointments /></ProtectedRoute>} />
 
-          {/* Doctor */}
-          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-          <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-          <Route path="/doctor/patient-records" element={<PatientRecords />} />
-          <Route path="/doctor/availability" element={<Availability />} />
-          
-          {/* Fallbacks */}
-          <Route path="/patient/*" element={<div className="p-4">Under Construction</div>} />
-          <Route path="/doctor/*" element={<div className="p-4">Under Construction</div>} />
-          <Route path="/admin/*" element={<div className="p-4">Under Construction</div>} />
+          {/* Doctor Routes - Protected for Doctors and Admins */}
+          <Route path="/doctor/dashboard" element={<ProtectedRoute allowedRoles={['doctor', 'admin']}><DoctorDashboard /></ProtectedRoute>} />
+          <Route path="/doctor/appointments" element={<ProtectedRoute allowedRoles={['doctor', 'admin']}><DoctorAppointments /></ProtectedRoute>} />
+          <Route path="/doctor/patient-records" element={<ProtectedRoute allowedRoles={['doctor', 'admin']}><PatientRecords /></ProtectedRoute>} />
+          <Route path="/doctor/availability" element={<ProtectedRoute allowedRoles={['doctor', 'admin']}><Availability /></ProtectedRoute>} />
+        </Route>
+
+        {/* Global Catch-all 404 Route */}
+        <Route element={<PublicLayout />}>
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
 

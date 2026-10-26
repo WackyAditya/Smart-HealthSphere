@@ -1,11 +1,8 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 
 const Doctors = () => {
-  return (
-    <div>
-      Doctors
-    </div>
-  );
+  return <Navigate to="/doctors" replace />;
 };
 
 export default Doctors;
