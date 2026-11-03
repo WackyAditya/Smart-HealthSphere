@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import { 
@@ -10,10 +10,58 @@ import {
   Search, 
   Filter, 
   Calendar, 
-  X
+  X,
+  AlertTriangle,
+  RotateCcw,
+  CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSearch } from '../context/SearchContext';
+
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// Helper to convert time string (e.g. "09:00", "09:30 AM", "17:30", "5:30 PM") into minutes from midnight
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr) return null;
+  const str = timeStr.trim().toUpperCase();
+  const isPM = str.includes('PM');
+  const isAM = str.includes('AM');
+  const clean = str.replace(/[AP]M/, '').trim();
+  const [hStr, mStr] = clean.split(':');
+  let hours = parseInt(hStr, 10);
+  const minutes = parseInt(mStr || '0', 10);
+  if (isNaN(hours) || isNaN(minutes)) return null;
+
+  if (isPM && hours < 12) hours += 12;
+  if (isAM && hours === 12) hours = 0;
+
+  return hours * 60 + minutes;
+};
+
+const formatMinutesToTime = (totalMinutes) => {
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const hPad = String(hours).padStart(2, '0');
+  const mPad = String(mins).padStart(2, '0');
+  return `${hPad}:${mPad}`;
+};
+
+const formatTimeTo12Hour = (time24) => {
+  const mins = parseTimeToMinutes(time24);
+  if (mins === null) return time24;
+  const hours = Math.floor(mins / 60);
+  const m = mins % 60;
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const h12 = hours % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+};
+
+const getDayNameFromDateStr = (dateStr) => {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return DAYS_OF_WEEK[dt.getDay()];
+};
 
 const SPECIALTY_CHIPS = [
   'All',
@@ -40,6 +88,7 @@ const DoctorsList = () => {
 
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
   const [localSearchTerm, setLocalSearchTerm] = useState(initialSearch || (initialSpec !== 'All' ? initialSpec : ''));
   const [selectedSpecialty, setSelectedSpecialty] = useState(initialSpec);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -50,22 +99,28 @@ const DoctorsList = () => {
   const [reason, setReason] = useState('');
   const [booking, setBooking] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState('');
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Sync local search term with global header search if typed in DashboardLayout header
   const activeSearch = globalSearchTerm || localSearchTerm;
 
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      setFetchError('');
+      const res = await api.get('/doctors');
+      setDoctors(res.data || []);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      setFetchError(error.response?.data?.message || 'Failed to load doctors list. Please retry.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get('/doctors');
-        setDoctors(res.data);
-      } catch (error) {
-        console.error('Error fetching doctors:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDoctors();
   }, []);
 
@@ -82,6 +137,78 @@ const DoctorsList = () => {
     }
   }, [location.search]);
 
+  // When date changes or doctor changes, fetch already-booked slots
+  useEffect(() => {
+    if (!selectedDoctor || !date) {
+      setBookedSlots([]);
+      return;
+    }
+
+    const fetchBooked = async () => {
+      try {
+        setLoadingSlots(true);
+        const res = await api.get(`/appointments/doctor/${selectedDoctor._id}/booked-slots?date=${date}`);
+        setBookedSlots(res.data || []);
+      } catch (err) {
+        console.error('Failed to load booked slots:', err);
+        setBookedSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    fetchBooked();
+  }, [selectedDoctor, date]);
+
+  // Doctor availability calculations
+  const dayName = getDayNameFromDateStr(date);
+  const docAvailability = selectedDoctor?.availability || [];
+  const daySchedule = docAvailability.filter(
+    av => av.day?.toLowerCase() === dayName?.toLowerCase()
+  );
+
+  const isDayAvailable = !date || docAvailability.length === 0 || daySchedule.length > 0;
+  const availableDaysList = [...new Set(docAvailability.map(av => av.day))];
+
+  // Generate 30-minute time slots for the chosen day
+  const generatedTimeSlots = useMemo(() => {
+    if (!date || !isDayAvailable) return [];
+    
+    const activeSlots = daySchedule.length > 0 
+      ? daySchedule 
+      : [{ startTime: '09:00', endTime: '17:00' }];
+
+    const slots = [];
+    activeSlots.forEach(range => {
+      const startMin = parseTimeToMinutes(range.startTime) || 540;
+      const endMin = parseTimeToMinutes(range.endTime) || 1020;
+      for (let m = startMin; m <= endMin; m += 30) {
+        slots.push({
+          time24: formatMinutesToTime(m),
+          time12: formatTimeTo12Hour(formatMinutesToTime(m)),
+          minutes: m
+        });
+      }
+    });
+
+    // Remove duplicates and sort chronologically
+    const unique = [];
+    const seen = new Set();
+    slots.sort((a, b) => a.minutes - b.minutes).forEach(s => {
+      if (!seen.has(s.time12)) {
+        seen.add(s.time12);
+        unique.push(s);
+      }
+    });
+    return unique;
+  }, [date, daySchedule, isDayAvailable]);
+
+  const isSlotBooked = (slot) => {
+    if (!bookedSlots || bookedSlots.length === 0) return false;
+    const sMin = parseTimeToMinutes(slot.time12);
+    return bookedSlots.some(b => parseTimeToMinutes(b) === sMin);
+  };
+
   const handleBookingStart = (doctor) => {
     if (!user || user.role !== 'patient') {
       navigate('/login?redirect=/doctors&message=Only patients can book appointments. Please log in with a patient account.');
@@ -92,10 +219,61 @@ const DoctorsList = () => {
       setReason(`AI Triage [${triageData.triageLevel} - Score: ${triageData.riskScore}]: ${triageData.symptomsEvaluated || ''}`);
     }
     setSelectedDoctor(doctor);
+    setDate('');
+    setTime('');
+    setBookingError('');
+    setSuccess(false);
   };
 
   const handleBookSubmit = async (e) => {
     e.preventDefault();
+    setBookingError('');
+
+    if (!date) {
+      setBookingError('Please choose a consultation date.');
+      return;
+    }
+
+    if (!isDayAvailable) {
+      setBookingError(`Dr. ${selectedDoctor.name} is not available on ${dayName}s. Available days: ${availableDaysList.join(', ')}.`);
+      return;
+    }
+
+    if (!time) {
+      setBookingError('Please select an available time slot.');
+      return;
+    }
+
+    // Verify time is inside doctor's consultation hours
+    const reqMinutes = parseTimeToMinutes(time);
+    if (reqMinutes === null) {
+      setBookingError('Please choose a valid time slot.');
+      return;
+    }
+
+    const activeSlots = daySchedule.length > 0 
+      ? daySchedule 
+      : [{ startTime: '09:00', endTime: '17:00' }];
+
+    const isInside = activeSlots.some(range => {
+      const sMin = parseTimeToMinutes(range.startTime) || 540;
+      const eMin = parseTimeToMinutes(range.endTime) || 1020;
+      return reqMinutes >= sMin && reqMinutes <= eMin;
+    });
+
+    if (!isInside) {
+      const rangesStr = activeSlots.map(s => `${s.startTime} - ${s.endTime}`).join(', ');
+      setBookingError(`Selected time (${time}) is outside Dr. ${selectedDoctor.name}'s consultation hours on ${dayName} (${rangesStr}).`);
+      return;
+    }
+
+    // Verify slot is not already booked
+    const alreadyBooked = bookedSlots.some(b => parseTimeToMinutes(b) === reqMinutes);
+    if (alreadyBooked) {
+      setBookingError(`This time slot (${time}) is already booked. Please choose another time.`);
+      return;
+    }
+
     setBooking(true);
     try {
       await api.post('/appointments', {
@@ -112,9 +290,10 @@ const DoctorsList = () => {
         setDate('');
         setTime('');
         setReason('');
+        setBookingError('');
       }, 2500);
     } catch (error) {
-      alert(error.response?.data?.message || 'Error booking appointment');
+      setBookingError(error.response?.data?.message || 'Error booking appointment. Please try again.');
     } finally {
       setBooking(false);
     }
@@ -172,7 +351,20 @@ const DoctorsList = () => {
       ) : (
         <>
           {/* Search & Filter Bar Container - Compact size */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 space-y-3.5">
+          {fetchError && doctors.length === 0 ? (
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-center text-rose-800 space-y-3">
+              <AlertTriangle className="h-8 w-8 text-rose-600 mx-auto" />
+              <h3 className="font-bold text-sm">Unable to load specialists</h3>
+              <p className="text-xs text-rose-600">{fetchError}</p>
+              <button
+                onClick={fetchDoctors}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Retry Connection
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 space-y-3.5">
             <div className="flex flex-col md:flex-row gap-2.5">
               <div className="flex-1 relative">
                 <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -225,6 +417,7 @@ const DoctorsList = () => {
               })}
             </div>
           </div>
+          )}
 
           {/* Results Summary Header */}
           <div className="flex justify-between items-center px-1 pt-1">
@@ -359,61 +552,153 @@ const DoctorsList = () => {
                   <p className="text-gray-500 text-xs">Your appointment request has been sent for approval. You will receive a notification shortly.</p>
                 </div>
               ) : (
-                <form onSubmit={handleBookSubmit} className="space-y-3.5">
-                  {/* Slots Info */}
-                  <div className="bg-indigo-50/50 rounded-xl p-3 border border-indigo-100">
+                <form onSubmit={handleBookSubmit} className="space-y-4">
+                  {bookingError && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-start gap-2 font-medium animate-shake">
+                      <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5 text-rose-600" />
+                      <span>{bookingError}</span>
+                    </div>
+                  )}
+
+                  {/* Working Hours Summary */}
+                  <div className="bg-indigo-50/50 rounded-2xl p-3.5 border border-indigo-100">
                     <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1.5 flex items-center">
-                      <Clock className="h-3 w-3 mr-1" /> Working Hours
+                      <Clock className="h-3 w-3 mr-1" /> Doctor's Weekly Availability
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedDoctor.availability?.length > 0 ? selectedDoctor.availability.map((av, i) => (
-                        <div key={i} className="bg-white text-primary-700 px-2.5 py-1 rounded text-xs font-semibold shadow-xs border border-indigo-100">
-                          {av.day}: {av.startTime} - {av.endTime}
+                        <div key={i} className="bg-white text-primary-700 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-2xs border border-indigo-100 flex items-center gap-1">
+                          <span className="font-bold">{av.day}:</span> {av.startTime} - {av.endTime}
                         </div>
-                      )) : <span className="text-xs text-gray-500">General Hours: Mon-Fri (9:00 - 17:00)</span>}
+                      )) : <span className="text-xs text-gray-500">General Consultation: Mon-Fri (09:00 - 17:00)</span>}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Preferred Date *</label>
-                      <input 
-                        type="date" 
-                        required 
-                        min={new Date().toISOString().split('T')[0]}
-                        value={date} 
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-medium text-xs"
-                      />
+                  {/* Preferred Date */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 text-primary-600" /> Preferred Date *
+                      </label>
+                      {date && dayName && (
+                        <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                          isDayAvailable 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}>
+                          {dayName} {isDayAvailable ? '• Available' : '• Unavailable'}
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Preferred Time *</label>
-                      <input 
-                        type="time" 
-                        required 
-                        value={time} 
-                        onChange={(e) => setTime(e.target.value)}
-                        className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-medium text-xs"
-                      />
-                    </div>
+                    <input 
+                      type="date" 
+                      required 
+                      min={new Date().toISOString().split('T')[0]}
+                      value={date} 
+                      onChange={(e) => {
+                        setDate(e.target.value);
+                        setTime('');
+                        setBookingError('');
+                      }}
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-semibold text-xs text-gray-800 cursor-pointer shadow-2xs"
+                    />
                   </div>
+
+                  {/* Unavailable Day Warning */}
+                  {date && !isDayAvailable && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2 font-medium">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">Dr. {selectedDoctor.name} does not have slots on {dayName}s.</p>
+                        <p className="text-[11px] text-amber-800 mt-0.5">
+                          Available consultation days: <strong className="font-extrabold">{availableDaysList.join(', ')}</strong>. Please pick another date above.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Easy Time Slot Selection (Interactive Chips) */}
+                  {date && isDayAvailable && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5 text-primary-600" /> Select Consultation Time *
+                        </label>
+                        {time && (
+                          <span className="text-[11px] font-extrabold text-primary-700 bg-primary-50 px-2.5 py-0.5 rounded-lg border border-primary-200 flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3 text-primary-600" /> Selected: {time}
+                          </span>
+                        )}
+                      </div>
+
+                      {loadingSlots ? (
+                        <div className="flex items-center justify-center p-6 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-2"></div>
+                          <span className="text-xs text-gray-500 font-medium">Checking live schedule...</span>
+                        </div>
+                      ) : generatedTimeSlots.length > 0 ? (
+                        <div className="space-y-2">
+                          <div className="max-h-36 overflow-y-auto p-1 border border-gray-100 rounded-xl bg-gray-50/60">
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                              {generatedTimeSlots.map((slot, i) => {
+                                const booked = isSlotBooked(slot);
+                                const isSelected = time === slot.time12 || time === slot.time24;
+                                return (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    disabled={booked}
+                                    onClick={() => {
+                                      setTime(slot.time12);
+                                      setBookingError('');
+                                    }}
+                                    className={`py-2 px-1.5 rounded-lg text-[11px] font-bold transition-all text-center flex flex-col items-center justify-center cursor-pointer border ${
+                                      booked 
+                                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                                        : isSelected
+                                        ? 'bg-primary-600 border-primary-600 text-white shadow-md shadow-primary-500/25 scale-[1.02]'
+                                        : 'bg-white border-gray-200 text-gray-700 hover:border-primary-400 hover:bg-primary-50/60'
+                                    }`}
+                                  >
+                                    <span>{slot.time12}</span>
+                                    {booked && <span className="text-[8px] text-rose-500 font-extrabold">Booked</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-gray-400 text-right">Click any open slot above to select</p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500 italic p-3 bg-gray-50 rounded-xl">No slots available for this day.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {!date && (
+                    <div className="p-3 bg-indigo-50/30 border border-dashed border-indigo-200 rounded-xl text-center">
+                      <p className="text-xs text-gray-500">
+                        👉 Please choose a <strong className="text-primary-700 font-semibold">Preferred Date</strong> above to view available time slots.
+                      </p>
+                    </div>
+                  )}
 
                   <div>
-                    <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1 block">Describe Your Condition *</label>
+                    <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1 block">Describe Your Condition *</label>
                     <textarea 
                       required 
                       value={reason} 
                       onChange={(e) => setReason(e.target.value)}
                       placeholder="Please briefly describe your symptoms or reason for visit..."
-                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-medium text-xs"
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none font-medium text-xs text-gray-800 transition"
                       rows={3}
                     ></textarea>
                   </div>
 
                   <button 
                     type="submit" 
-                    disabled={booking}
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex justify-center items-center cursor-pointer disabled:opacity-50"
+                    disabled={booking || !date || !time || !isDayAvailable}
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex justify-center items-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {booking ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

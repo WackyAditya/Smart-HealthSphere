@@ -6,8 +6,8 @@ const getBaseURL = () => {
     return import.meta.env.VITE_LOCAL_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5006/api';
   }
   // When running on public deployment (ShipStatic, custom domain, etc.)
-  // Must use HTTPS to prevent browser Mixed Content security blocking
-  return import.meta.env.VITE_PUBLIC_API_URL || 'https://f85d81b0c9cfee.lhr.life/api';
+  // Connected via secure Cloudflare Tunnel
+  return import.meta.env.VITE_PUBLIC_API_URL || 'https://purchase-kind-blvd-forget.trycloudflare.com/api';
 };
 
 const api = axios.create({
@@ -15,7 +15,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  config.headers['Bypass-Tunnel-Reminder'] = 'true';
   try {
     const token = localStorage.getItem('token');
     if (token) {

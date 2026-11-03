@@ -10,9 +10,9 @@
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI%20SDK-orange.svg?logo=google)](https://ai.google.dev/)
 [![Security](https://img.shields.io/badge/Security-AES--256--CBC%20%7C%20JWT-red.svg)](#security--cryptography)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.3.5-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-ShipStatic-brightgreen.svg)](https://resonant-star-7hp8f5n.shipstatic.com)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ShipStatic-brightgreen.svg)](https://tethered-neon-47vmd3y.shipstatic.com)
 
-🔗 **Live Public Demo:** [https://resonant-star-7hp8f5n.shipstatic.com](https://resonant-star-7hp8f5n.shipstatic.com)
+🔗 **Live Public Demo:** [https://tethered-neon-47vmd3y.shipstatic.com](https://tethered-neon-47vmd3y.shipstatic.com)
 
 ---
 
