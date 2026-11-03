@@ -1,11 +1,13 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
-  if (envUrl) {
-    return envUrl;
+  // If running locally in development on localhost or 127.0.0.1
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return import.meta.env.VITE_LOCAL_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5006/api';
   }
-  return '/api';
+  // When running on public deployment (ShipStatic, custom domain, etc.)
+  // Must use HTTPS to prevent browser Mixed Content security blocking
+  return import.meta.env.VITE_PUBLIC_API_URL || 'https://f85d81b0c9cfee.lhr.life/api';
 };
 
 const api = axios.create({
