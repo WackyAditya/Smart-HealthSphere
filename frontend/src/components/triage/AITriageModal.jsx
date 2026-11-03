@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, AlertTriangle, CheckCircle, ShieldAlert, Sparkles, X, ArrowRight, Stethoscope } from 'lucide-react';
 import api from '../../api/axios';
 
@@ -10,6 +10,19 @@ const AITriageModal = ({ isOpen, onClose, onSelectSpecialty }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+
+  // Clear triage question/result on logout
+  useEffect(() => {
+    const handleLogout = () => {
+      setSymptoms('');
+      setResult(null);
+      setError('');
+      if (onClose) onClose();
+    };
+
+    window.addEventListener('app:logout', handleLogout);
+    return () => window.removeEventListener('app:logout', handleLogout);
+  }, [onClose]);
 
   if (!isOpen) return null;
 

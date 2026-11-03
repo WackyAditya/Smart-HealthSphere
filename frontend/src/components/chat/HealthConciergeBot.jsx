@@ -22,20 +22,47 @@ const QUICK_PROMPTS = [
   "I have a fever and headache, what should I do?"
 ];
 
+const INITIAL_WELCOME_MESSAGE = {
+  id: 'welcome',
+  role: 'assistant',
+  text: "👋 Hi there! I'm your **24/7 Health Concierge**.\n\nAsk me anything about finding specialists, booking telemedicine calls, or understanding health records!",
+  timestamp: new Date()
+};
+
 const HealthConciergeBot = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      text: "👋 Hi there! I'm your **24/7 Health Concierge**.\n\nAsk me anything about finding specialists, booking telemedicine calls, or understanding health records!",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState([INITIAL_WELCOME_MESSAGE]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const prevUserRef = useRef(user);
+
+  // Clear chat conversation history upon logout or user account switch
+  useEffect(() => {
+    const handleLogout = () => {
+      setMessages([{ ...INITIAL_WELCOME_MESSAGE, timestamp: new Date() }]);
+      setInputText('');
+      setIsOpen(false);
+    };
+
+    window.addEventListener('app:logout', handleLogout);
+    return () => window.removeEventListener('app:logout', handleLogout);
+  }, []);
+
+  // Also monitor auth state changes
+  useEffect(() => {
+    const wasLoggedIn = Boolean(prevUserRef.current);
+    const isNowLoggedOut = !user;
+    const userChanged = prevUserRef.current && user && (prevUserRef.current._id !== user._id || prevUserRef.current.email !== user.email);
+
+    if ((wasLoggedIn && isNowLoggedOut) || userChanged) {
+      setMessages([{ ...INITIAL_WELCOME_MESSAGE, timestamp: new Date() }]);
+      setInputText('');
+      setIsOpen(false);
+    }
+    prevUserRef.current = user;
+  }, [user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

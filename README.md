@@ -1,8 +1,8 @@
 # Healthcare Management System
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-ShipStatic-brightgreen.svg)](https://airy-point-gg2qru3.shipstatic.com)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ShipStatic-brightgreen.svg)](https://obscured-lab-9bkb33n.shipstatic.com)
 
-**Live Demo URL:** [https://airy-point-gg2qru3.shipstatic.com](https://airy-point-gg2qru3.shipstatic.com)
+**Live Demo URL:** [https://obscured-lab-9bkb33n.shipstatic.com](https://obscured-lab-9bkb33n.shipstatic.com)
 
 ## 11. Security and Production Notes
 For a real healthcare product, add the following before production:
