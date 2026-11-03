@@ -10,6 +10,9 @@
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI%20SDK-orange.svg?logo=google)](https://ai.google.dev/)
 [![Security](https://img.shields.io/badge/Security-AES--256--CBC%20%7C%20JWT-red.svg)](#security--cryptography)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.3.5-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ShipStatic-brightgreen.svg)](https://airy-point-gg2qru3.shipstatic.com)
+
+🔗 **Live Public Demo:** [https://airy-point-gg2qru3.shipstatic.com](https://airy-point-gg2qru3.shipstatic.com)
 
 ---
 
@@ -358,11 +361,18 @@ Frontend application will launch on `http://localhost:5173`.
   * `JWT_SECRET=your_production_jwt_secret`
   * `GEMINI_API_KEY=your_production_gemini_key`
 
-### Frontend (Vercel / Netlify / Cloudflare Pages)
+### Frontend (Vercel / Netlify / Cloudflare Pages / ShipStatic)
 * **Build Command:** `npm run build`
 * **Output Directory:** `dist`
 * **Required Environment Variable:**
   * `VITE_API_URL=https://your-backend-api-domain.com/api`
+* **Instant Deploy via ShipStatic:**
+  ```bash
+  cd frontend
+  npm run build
+  npx @shipstatic/ship dist
+  ```
+  *(Configured with `frontend/ship.json` for SPA route rewrites)*.
 
 ---
 
